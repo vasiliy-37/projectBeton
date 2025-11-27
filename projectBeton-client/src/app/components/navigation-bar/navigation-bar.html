@@ -1,0 +1,9 @@
+<button class="menu-toggle" (click)="toggleMenu()" > ☰ </button>
+<nav class="main-nav" [class.is-open]="isMenuOpen()">
+  <ul>
+    <li><a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">Главная</a></li>
+    <li><a routerLink="/price" routerLinkActive="active-link" (click)="closeMenu()">Прайс-лист</a></li>
+    <li><a routerLink="/services" routerLinkActive="active-link" (click)="closeMenu()">Услуги</a></li>
+    <li><a routerLink="/contacts" routerLinkActive="active-link" (click)="closeMenu()">Контакты</a></li>
+  </ul>
+</nav>

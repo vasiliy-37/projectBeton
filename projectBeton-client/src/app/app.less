@@ -1,0 +1,64 @@
+body {
+    margin: 0;
+    width: 100%;
+    /* Используем высоту окна просмотра (viewport height) */
+    height: 100vh; 
+    
+    background-color: rgb(255, 255, 255); 
+    background: 
+        // linear-gradient(rgba(0, 0, 100, 0.96), rgba(58, 58, 230, 0.96)),
+        url('/assets/background.jpg');
+        
+    background-repeat: no-repeat;
+    background-position: center; /* Центрируем изображение */
+    background-size: cover; 
+
+    /* === САМОЕ ГЛАВНОЕ: Фиксируем фон относительно экрана === */
+    background-attachment: fixed;
+}
+
+// .page-content-layout {
+    // padding: 20px;
+    // z-index: 1;
+    // position: relative;
+    // background: 
+    //     // linear-gradient(rgba(0, 0, 100, 0.96), rgba(58, 58, 230, 0.96)),
+    //     url('/assets/background.jpg');
+    // background-repeat: no-repeat;
+    // background-position: 50% 80%;
+    // background-size: cover;
+    // border-radius: 25px;
+    // max-width: 90%; 
+    // margin: 55px auto 20px auto; /* Объединил margin-top: 55px и margin: auto */
+    // min-height: 70vh;
+// }
+
+// .container {
+//     content: '';
+//     position: fixed; /* Чтобы изображение оставалось на месте при прокрутке */
+//     margin-top: 20px;
+//     left: 5%;        /* Отступ слева */
+//     width: 90%;      /* Ширина блока с фоном */
+//     height: 80%;     /* Высота блока с фоном (например, 60vh для привязки к размеру экрана) */
+//     // background-image: url('/assets/background.jpg'); /* Само изображение */
+//     // background-repeat: no-repeat;
+//     // background-position: 50% 80%; /* Центрируем изображение внутри этого блока */
+//     // background-size: cover; /* Заполняем псевдоэлемент изображением, обрезая по краям */
+//     // border-radius: 25px; /* Скругляем углы */
+//     z-index: -1;     /* Отправляем под основной контент */
+// }
+
+/* Контейнер для основного контента (вашего приглашения или другой информации) */
+// .background-container {
+//     /* Этот контейнер будет поверх белого фона body и фона body::before */
+//     background: white;
+//     border-radius: 25px;
+//     margin: 40px 20px 20px 20px; /* Отступы от края экрана */
+//     padding: 20px;
+//     /* Если у вас есть фиксированный header/nav, calc() нужно настроить под ваши размеры */
+//     min-height: calc(100vh - 160px); 
+//     box-sizing: border-box;
+//     position: relative;
+//     z-index: 10; /* Убеждаемся, что контент поверх фона */
+//     box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Можно добавить легкую тень для выделения */
+// }

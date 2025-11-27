@@ -1,0 +1,24 @@
+<div class="home-layout-wrapper">
+    
+    <!-- Левая колонка с текстом -->
+      @if(!calculator?.openModalClick()) {
+    <div class="text-content-area">
+        <div class="gradient-text"><h1>Купить бетон в Иваново напрямую с завода</h1>
+        <p>
+            Мы гарантируем оперативную поставку высококачественного бетона любых марок прямо на ваш объект в Иваново и области. 
+            Собственный автопарк миксеров. Точный объем. Никаких посредников и переплат.
+        </p>
+    </div>
+    </div>
+    } @else {
+        <app-order-modal 
+      (closeModal)="calculator.closeOpenModalClick()"
+      [volume]="calculator?.finalVolume()" 
+      [grade]="calculator?.selectedGrade()!">
+    </app-order-modal>
+    }
+
+    <!-- Правая колонка с калькулятором -->
+    <app-calculator></app-calculator>
+
+</div>

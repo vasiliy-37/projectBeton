@@ -1,0 +1,87 @@
+h1 {
+    color: #ffffff;
+    font-size: 48px;
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: 1;
+    font-family: 'Oswald', sans-serif;
+    -webkit-text-stroke: 1px black;
+}
+
+p {
+    color: #ffffff;
+    font-size: 35px;
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: 1;
+    font-family: 'Oswald', sans-serif;
+    -webkit-text-stroke: 1px black;
+}
+
+// .gradient-text {
+//     background: linear-gradient(90deg, #ec7373, #cac831);
+//     -webkit-text-fill-color: transparent;
+//     -webkit-background-clip: text;
+//     background-clip: text;
+// }
+
+.home-layout-wrapper {
+    display: flex;             /* Включаем Flexbox */
+    gap: 30px;                 /* Промежуток между колонками */
+    justify-content: space-evenly;
+    padding-top: 50px;
+    // padding: 80px;             /* Отступы внутри обертки */
+}
+
+.text-content-area {
+    flex: 1;                   /* Эта колонка занимает все оставшееся место */
+    min-width: 300px;
+    max-width: 700px;          
+    /* Добавляем фон, чтобы текст было видно поверх фонового изображения страницы */
+    // background-color: rgba(255, 255, 255, 0.5); 
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* Стили для компонента калькулятора, чтобы он не растягивался */
+app-calculator{
+    display: block;
+    width: 100%;
+    max-width: 450px; /* Ограничиваем ширину калькулятора */
+}
+
+/* Стили для заголовка и параграфа внутри текстовой области */
+.text-content-area h1 {
+    margin-top: 0; 
+}
+
+@media (max-width: 768px) {
+
+    p {
+    font-size: 20px;
+}
+
+.home-layout-wrapper {
+        /* Меняем направление колонок на вертикальное */
+        flex-direction: column; 
+        /* Убираем gap между колонками, если нужно */
+        gap: 20px; 
+        /* Растягиваем на 100% ширины */
+        width: 100%;
+        // padding: 15px; /* Немного меньше отступы на мобильном */
+    }
+
+    .text-content-area {
+        /* На мобильном он должен занимать всю ширину */
+        width: 100%;
+        max-width: none; /* Снимаем ограничение max-width */
+        min-width: unset;
+        padding: 0; /* Если padding: 20px уже есть в .home-layout-wrapper */
+    }
+
+    app-calculator {
+        /* На мобильном он должен занимать всю доступную ширину контейнера */
+        width: 100%;
+        max-width: none; /* Снимаем ограничение max-width */
+    }
+}

@@ -1,0 +1,19 @@
+<h2>Наши услуги</h2>
+
+<div *ngIf="isLoading">Загрузка данных...</div>
+<div *ngIf="error" style="color: red;">{{ error }}</div>
+
+<table *ngIf="!isLoading && services.length > 0" class="table" cellpadding="10" width="100%">
+  <thead>
+    <tr>
+      <th>Услуга</th>
+      <th>Цена (руб.)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let service of services">
+      <td>{{ service.name }}</td>
+      <td>{{ service.price }}</td>
+    </tr>
+  </tbody>
+</table>

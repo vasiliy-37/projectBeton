@@ -1,0 +1,277 @@
+header {
+    background-color: white; /* Полупрозрачный цвет фона */
+    position: sticky; /* Или absolute, в зависимости от желаемого поведения при прокрутке */
+    // top: 55px; /* Отступ от верхнего края, чтобы быть под хедером */
+    z-index: 1000; /* Чтобы был поверх всего */
+    margin: 0; /* Убираем внешние отступы */
+    // border-radius: 10px; /* Убираем скругление */
+    /* Цвет фона навбара */
+    display: flex;
+    justify-content: space-between;
+    /* Распределяем элементы по краям */
+    align-items: center;
+    /* Выравниваем по центру вертикали */
+    padding: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
+    /* Отступы по бокам */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+//   margin-top: 10px;  
+}
+.contact-info-container {
+  display: flex;
+  align-items: center;
+}
+
+/* Стилизация текстового логотипа */
+.logo {
+    display: flex;
+    flex-direction: column;
+    /* Выравниваем текст по левому краю (если нужно) */
+    align-items: flex-start;
+}
+
+/* Стиль для первой, крупной строки (БЕТОН) */
+.logo-main {
+    color: #000000;
+    font-size: 38px;
+    /* Крупный размер */
+    font-weight: 800;
+    /* Очень жирный */
+    text-transform: uppercase;
+    line-height: 1.1;
+    /* Уменьшаем межстрочный интервал */
+    font-family: 'Oswald', sans-serif;
+}
+
+/* Стиль для второй, мелкой строки (с доставкой в Иваново) */
+.logo-subtitle {
+    color: #000000;
+    /* Нейтральный светлый серый */
+    font-size: 20px;
+    /* Мелкий размер */
+    font-weight: 500;
+    margin-top: 1px;
+    /* Небольшой отступ сверху */
+    letter-spacing: 0.5px;
+    font-family: 'Oswald', sans-serif;
+}
+
+/* Стилизация номера телефона */
+.phone-number {
+    padding: 10PX;
+    color: #ec7373;
+    text-decoration: none;
+    font-size: 32px;
+    transition: color 0.3s ease;
+    font-family: 'Oswald', sans-serif;
+     text-decoration: none;
+     border-style: solid;
+     border-width: 2px;
+     border-color: #ec7373;
+}
+
+.phone-number:hover {
+  text-decoration: underline;
+  text-decoration-color: #ec7373;
+}
+
+// /* Стилизация кнопки "Перейти к калькулятору" */
+// // .actions {
+// //     position: relative;
+// //     display: flex;
+// //     align-items: center;
+// //     justify-content: center;
+// // }
+
+.btn-calculator {
+    /* Базовые размеры и вид */
+    /* Увеличил высоту и добавил padding, чтобы текст центрировался */
+    height: auto; 
+    padding: 10px 15px; 
+    width: auto; /* Ширина по контенту */
+    border: none;
+    outline: none;
+    color: #fff;
+    cursor: pointer;
+    position: relative;
+    z-index: 0;
+    margin-left: 25px;
+    overflow: hidden; /* Скрывает блик за пределами кнопки */
+    border-radius: 3px;
+    text-decoration: none; /* Это ссылка, убираем подчеркивание */
+    display: inline-block; /* Ссылки должны быть блочными/inline-block для размеров */
+    box-sizing: border-box; /* Учитываем padding в размере */
+    background-color: #ec7373;
+    transition: background-color 0.4s;
+}
+
+.btn-calculator:hover {
+  background-color: #b45757;
+}
+
+.btn-calculator::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: linear-gradient(to right, transparent, #ffffff);
+  transform: skewX(-10deg) translateX(-120%);
+  opacity: 0.5;
+  animation: repeats 4s infinite linear; 
+}
+
+@keyframes repeats {
+  0% {
+    transform: skewX(-10deg) translateX(-120%);
+  }
+
+  35% {
+    transform: skewX(-10deg) translateX(120%);
+  }
+
+  100% {
+    transform: skewX(-10deg) translateX(120%);
+  }
+}
+
+@media (max-width: 768px) {
+
+  header {
+    /* Перестраиваем элементы в вертикальный стек на мобильных */
+    flex-direction: column; 
+    flex-wrap: wrap;
+    align-items: flex-start; /* Выравниваем все по левому краю */
+    padding: 15px 20px; /* Отступы для мобильных */
+    gap: 10px; /* Добавляем отступы между элементами хедера */
+  }
+
+.contact-info-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  // gap: 120px; /* Отступ между номером и кнопкой навигации */
+  flex-grow: 1; /* Позволяет ему растягиваться, если header - flex */
+  width: 100%;
+  // order: 1;
+}
+  
+  /* Убираем анимацию на мобильных для производительности и простоты */
+  .btn-calculator::before {
+    display: none; 
+  }
+
+  @keyframes repeats {
+    0% { transform: none; }
+    100% { transform: none; }
+  }
+
+  .logo-main {
+    font-size: 28px; /* Еще меньше размер логотипа */
+  }
+
+  .logo-subtitle {
+    font-size: 16px;
+  }
+
+  /* Номер телефона делаем менее акцентным, убираем рамку */
+  .contact-info {
+    display: block;
+    // order: -1; /* Перемещаем номер телефона наверх (если нужно) */
+    // width: 100%;
+  }
+
+  .phone-number {
+     display: block;
+    font-size: 22px;
+    padding: 0;
+    border: none;
+    display: block;
+    margin-bottom: 10px;
+    color: #000000; /* Делаем цвет обычным черным */
+    text-decoration: underline; /* Добавляем подчеркивание для кликабельности */
+    white-space: nowrap;
+  }
+
+.navigation-mobile-wrapper {
+  // display: block;
+  // position: relative; 
+  display: inline-block;
+}
+
+  .phone-number:hover {
+    text-decoration-color: #007bff;
+  }
+
+  /* Блок с навигацией (app-navigation-bar) будет занимать всю ширину */
+  /* Предполагаю, что внутри app-navigation-bar есть своя логика адаптивности (гамбургер-меню) */
+  app-navigation-bar {
+    width: 100%;
+  }
+
+  .actions {
+    width: 100%; /* Кнопка занимает всю ширину на мобильных */
+    margin-top: 10px;
+  }
+  
+  .btn-calculator {
+    width: 100%; /* Растягиваем кнопку на всю ширину экрана */
+    margin-left: 0;
+    text-align: center; /* Центрируем текст внутри кнопки */
+  }
+}
+// @keyframes repeats {
+//   /* Упрощенная анимация для постоянного цикла */
+//   0% {
+//     transform: skewX(-10deg) translateX(-120%);
+//   }
+//   100% {
+//     /* Должен пройти весь путь до конца и вернуться в 0% */
+//     transform: skewX(-10deg) translateX(220%); 
+//   }
+// }
+
+// /* --- Стили самой кнопки --- */
+// .btn-calculator {
+//     background-color: #00bfff; /* Сплошной голубой фон (непрозрачный) */
+//     color: #ffffff; /* Белый текст */
+//     padding: 10px 20px;
+//     border: none; 
+//     border-radius: 5px;
+//     font-weight: 600;
+//     font-size: 15px;
+//     text-decoration: none;
+//     transition: background-color 0.3s ease, transform 0.2s ease;
+//     position: relative; 
+//     overflow: hidden; /* Скрываем части анимации за контуром */
+//     z-index: 1; 
+// }
+
+// .btn-calculator:hover {
+//     background-color: #00a0e6; 
+//     transform: translateY(-2px); 
+// }
+
+// /* --- Создание 1-й линии "змейки", движущейся по контуру --- */
+
+// /* Общие стили для всех линий (останется только ::before) */
+// .btn-calculator::before {
+//     content: '';
+//     position: absolute;
+//     background: red; /* Цвет змейки - красный */
+//     top: 0;
+//     left: 0;
+//     width: 2px; /* Ширина полоски */
+//     height: 2px; /* Начальная высота полоски */
+//     animation: animate-line 4s linear infinite; /* Новая анимация для одной полоски */
+// }
+
+// /* Удаляем остальные псевдоэлементы */
+// .btn-calculator::after,
+// .btn-calculator span::before,
+// .btn-calculator span::after {
+//     display: none; // Скрываем их, чтобы они не отображались
+// }

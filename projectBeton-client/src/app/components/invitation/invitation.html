@@ -1,0 +1,14 @@
+@if (isDivVisible()) {
+<div class="invitation-banner">
+    <button class="close-button" (click)="hideDiv()">&times;</button>
+    <!-- <p>Приглашаем к сотрудничеству компании, занимающиеся бетонными работами</p> -->
+     <!-- <p>Приглашаем к сотрудничеству строительные компании.</p> -->
+      <p>Выгодное партнерство для строителей.</p>
+
+    <app-contact-button (openModal)="openModal()"></app-contact-button>
+
+    @if (showContactModal()) {
+  <app-form-invitation (closeModal)="closeModal()"></app-form-invitation>
+}
+</div>
+}
