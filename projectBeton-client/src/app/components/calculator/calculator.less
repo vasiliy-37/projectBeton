@@ -9,6 +9,12 @@
   border-width: 1px;
   border-style: solid;
   border-color: black;
+  animation: fadeInFromTop 0.8s ease-out;
+    }
+    
+    @keyframes fadeInFromTop {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
 }
 
 .input-method-selection,
