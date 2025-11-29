@@ -1,5 +1,5 @@
 h1 {
-    color: #ffffff;
+    color: #000000;
     font-size: 48px;
     font-weight: 600;
     text-transform: uppercase;
@@ -18,12 +18,35 @@ p {
     -webkit-text-stroke: 1px black;
 }
 
-// .gradient-text {
-//     background: linear-gradient(90deg, #ec7373, #cac831);
-//     -webkit-text-fill-color: transparent;
-//     -webkit-background-clip: text;
-//     background-clip: text;
-// }
+.text-background {
+      /* Увеличенная прозрачность */
+      background-color: rgba(255, 255, 255, 0.7); 
+      
+      /* Эффект "ретуширования" (размытие фона) */
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px); /* Для Safari */
+
+      padding: 30px; 
+      border-radius: 24px; /* Увеличено для более мягких углов */
+      
+      /* Усиленная тень для эффекта "парения" */
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); 
+      
+    //   border: 1px solid rgba(255, 255, 255, 0.5); 
+      
+      /* Добавим анимацию */
+      animation: fadeInFromTop 0.8s ease-out;
+    }
+    
+    @keyframes fadeInFromTop {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeInFromTop {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }  
 
 .home-layout-wrapper {
     display: flex;             /* Включаем Flexbox */
