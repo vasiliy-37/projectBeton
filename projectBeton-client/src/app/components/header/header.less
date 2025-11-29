@@ -18,9 +18,13 @@ header {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 //   margin-top: 10px;  
 }
+
 .contact-info-container {
-  display: flex;
-  align-items: center;
+display: flex;
+align-items: center;
+justify-content: space-evenly; 
+flex-grow: 1;
+gap: 30px;
 }
 
 /* Стилизация текстового логотипа */
@@ -58,23 +62,23 @@ header {
 }
 
 /* Стилизация номера телефона */
-.phone-number {
-    padding: 10PX;
-    color: #ec7373;
-    text-decoration: none;
-    font-size: 32px;
-    transition: color 0.3s ease;
-    font-family: 'Oswald', sans-serif;
-     text-decoration: none;
-     border-style: solid;
-     border-width: 2px;
-     border-color: #ec7373;
-}
+// .phone-number {
+//     padding: 10PX;
+//     color: #ec7373;
+//     text-decoration: none;
+//     font-size: 32px;
+//     transition: color 0.3s ease;
+//     font-family: 'Oswald', sans-serif;
+//      text-decoration: none;
+//      border-style: solid;
+//      border-width: 2px;
+//      border-color: #ec7373;
+// }
 
-.phone-number:hover {
-  text-decoration: underline;
-  text-decoration-color: #ec7373;
-}
+// .phone-number:hover {
+//   text-decoration: underline;
+//   text-decoration-color: #ec7373;
+// }
 
 // /* Стилизация кнопки "Перейти к калькулятору" */
 // // .actions {
@@ -202,9 +206,9 @@ header {
   display: inline-block;
 }
 
-  .phone-number:hover {
-    text-decoration-color: #007bff;
-  }
+  // .phone-number:hover {
+  //   text-decoration-color: #007bff;
+  // }
 
   /* Блок с навигацией (app-navigation-bar) будет занимать всю ширину */
   /* Предполагаю, что внутри app-navigation-bar есть своя логика адаптивности (гамбургер-меню) */
