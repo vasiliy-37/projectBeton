@@ -55,6 +55,23 @@ app.get('/api/get-phone-number', (req, res) => {
         });
 });
 
+app.post('/api/set-phone-number', (req, res) => {
+    const { phoneNumber } = req.body;
+
+    // Update the phone number in the database
+    Contact.findOneAndUpdate({}, { phoneNumber }, { new: true, upsert: true })
+        .then(updatedContact => {
+            res.json({
+                message: 'Phone number updated successfully.',
+                phoneNumber: updatedContact.phoneNumber
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({ error: 'Internal server error while updating phone number.' });
+        });
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
