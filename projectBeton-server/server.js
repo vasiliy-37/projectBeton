@@ -72,6 +72,38 @@ app.post('/api/set-phone-number', (req, res) => {
         });
 });
 
+app.post('/api/update-price', (req, res) => {
+    const { _id, type, price } = req.body;
+    let Model; 
+
+    if (type === 'Бетон') {
+        Model = Product;
+    } else if (type === 'Пескобетон') {
+        Model = sandBrands;
+    } else {
+        return res.status(400).json({ error: 'Неизвестный тип продукта. Обновление невозможно.' });
+    }
+
+    Model.findByIdAndUpdate(
+        _id, 
+        { price: price }, 
+        { new: true } 
+    )
+    .then(updatedDoc => {
+        if (!updatedDoc) {
+            return res.status(404).json({ error: 'Документ для обновления не найден.' });
+        }
+        res.json({
+            message: `Цена для ${updatedDoc.brand || updatedDoc.name} успешно обновлена.`,
+            newPrice: updatedDoc.price
+        });
+    })
+    .catch(err => {
+        console.error('Ошибка при обновлении цены:', err);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении цены.' });
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
