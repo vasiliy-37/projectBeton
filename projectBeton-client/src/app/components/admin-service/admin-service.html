@@ -1,0 +1,128 @@
+<div class="admin-services-container">
+      <h1>Администрирование услуг и цен</h1>
+
+      <!-- Секция для создания новой услуги (Добавить) -->
+      <div class="card create-form-card">
+        <h2>➕ Добавить новую услугу</h2>
+        <div class="form-grid">
+          
+          <input 
+            type="text" 
+            [(ngModel)]="newService().name" 
+            (ngModelChange)="onNewServiceNameChange($event)"
+            placeholder="Название услуги (например, Выезд специалиста)" 
+            name="new_name"
+            [disabled]="isCreating()"
+            class="rounded-md border p-2"
+          >
+          
+          <input 
+            type="number" 
+            [(ngModel)]="newService().price" 
+            (ngModelChange)="onNewServicePriceChange($event)"
+            placeholder="Цена (руб.)" 
+            name="new_price"
+            min="0"
+            [disabled]="isCreating()"
+            class="rounded-md border p-2"
+          >
+          
+          <button 
+            (click)="createService()" 
+            [disabled]="isCreating() || !isNewServiceValid()"
+            class="create-button rounded-md"
+          >
+            {{ isCreating() ? 'Создание...' : 'Создать услугу' }}
+          </button>
+        </div>
+        <div class="error-message" *ngIf="createError()">{{ createError() }}</div>
+      </div>
+
+      <hr class="my-6 border-gray-300">
+
+      <!-- Список существующих услуг (Чтение, Редактирование, Удаление) -->
+      <h2>Список существующих услуг</h2>
+      
+      <div class="loading-message" *ngIf="isLoading()">
+        <p>Загрузка данных...</p>
+      </div>
+      
+      <div class="error-message" *ngIf="error()">
+        <p>❌ Ошибка: {{ error() }}</p>
+        <button (click)="fetchServices()" class="retry-button">Повторить загрузку</button>
+      </div>
+      
+      <table *ngIf="!isLoading() && services().length > 0" class="services-table">
+        <thead>
+          <tr>
+            <th>Название услуги</th>
+            <th>Цена (руб.)</th>
+            <th class="w-48">Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let service of services(); trackBy: trackByServiceId" [class.editing]="service.isEditing">
+            
+            <!-- Режим просмотра -->
+            <ng-container *ngIf="!service.isEditing">
+              <td>{{ service.name }}</td>
+              <td>{{ service.price | number:'1.0-2' }}</td>
+            </ng-container>
+            
+            <!-- Режим редактирования -->
+            <ng-container *ngIf="service.isEditing">
+              <td>
+                <input 
+                  type="text" 
+                  [(ngModel)]="service.name" 
+                  name="edit_name_{{service._id}}"
+                  [disabled]="service.isSaving"
+                  class="edit-input"
+                >
+              </td>
+              <td>
+                <input 
+                  type="number" 
+                  [(ngModel)]="service.price" 
+                  name="edit_price_{{service._id}}"
+                  min="0"
+                  [disabled]="service.isSaving"
+                  class="edit-input"
+                >
+              </td>
+            </ng-container>
+
+            <!-- Кнопки действий -->
+            <td class="action-buttons">
+              <!-- Режим просмотра: кнопки Редактировать и Удалить (Убрать) -->
+              <ng-container *ngIf="!service.isEditing">
+                <button (click)="toggleEdit(service)" class="edit-btn" title="Редактировать">
+                    ✍️
+                </button>
+                <button (click)="deleteService(service)" [disabled]="service.isSaving" class="delete-btn" title="Удалить услугу">
+                    🗑️
+                </button>
+              </ng-container>
+
+              <!-- Режим редактирования: кнопки Сохранить и Отмена -->
+              <ng-container *ngIf="service.isEditing">
+                <button 
+                  (click)="updateService(service)" 
+                  [disabled]="service.isSaving || !service.name || service.price <= 0"
+                  class="save-btn"
+                >
+                  {{ service.isSaving ? 'Сохранение...' : '✅ Сохранить' }}
+                </button>
+                <button (click)="toggleEdit(service)" [disabled]="service.isSaving" class="cancel-btn">
+                  Отмена
+                </button>
+              </ng-container>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="no-data-message" *ngIf="!isLoading() && services().length === 0">
+        <p>Данных об услугах пока нет. Добавьте первую услугу выше.</p>
+      </div>
+    </div>
