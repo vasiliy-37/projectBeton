@@ -5,10 +5,14 @@ import { HttpClient, HttpErrorResponse, provideHttpClient } from '@angular/commo
 import { finalize } from 'rxjs';
 import { ChangeDetectionStrategy } from '@angular/core';
 
+const ALLOWED_UNITS = ['руб.', 'руб/м³', 'руб/км', 'руб/час'] as const;
+type ServiceUnit = typeof ALLOWED_UNITS[number];
+
 export interface ServiceItem {
   _id: string; 
   name: string;
   price: number;
+  unit: ServiceUnit;
   isSaving: boolean; 
   isEditing: boolean; 
 }
@@ -28,10 +32,11 @@ export class AdminService implements OnInit {
   error = signal<string | null>(null);
   
   // Состояние формы создания
-  newService = signal<Omit<ServiceItem, '_id'| 'isSaving'| 'isEditing'>>({ name: '', price: 0 });
+  newService = signal<Omit<ServiceItem, '_id'| 'isSaving'| 'isEditing'>>({ name: '', price: 0, unit: 'руб.'});
   isCreating = signal(false);
   createError = signal<string | null>(null);
 
+  readonly allowedUnits = ALLOWED_UNITS;
   private apiUrl = '/api/services'; // Эндпоинт для работы с услугами
   private http = inject(HttpClient); // Инъекция HttpClient
 
@@ -51,6 +56,10 @@ export class AdminService implements OnInit {
   onNewServicePriceChange(price: number) {
     const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
     this.newService.update(s => ({ ...s, price: isNaN(numericPrice) ? 0 : numericPrice }));
+  }
+
+  onNewServiceUnitChange(unit: string) {
+    this.newService.update(s => ({ ...s, unit: unit as ServiceUnit }));
   }
 
   ngOnInit(): void {
@@ -73,7 +82,11 @@ export class AdminService implements OnInit {
       .subscribe({
         next: (data) => {
           // Инициализируем флаги состояния для каждого элемента
-          this.services.set(data.map(s => ({ ...s, isSaving: false, isEditing: false })));
+          this.services.set(data.map(s => ({ ...s,
+              unit: s.unit || 'руб.',
+              isSaving: false,
+              isEditing: false 
+            })));
         },
         error: (err: HttpErrorResponse) => {
           this.error.set('Не удалось загрузить услуги. Проверьте, запущен ли сервер Express.js.');
@@ -105,7 +118,7 @@ export class AdminService implements OnInit {
             { ...service, isSaving: false, isEditing: false }
           ]);
           // Сброс формы
-          this.newService.set({ name: '', price: 0 }); 
+          this.newService.set({ name: '', price: 0, unit: 'руб.'}); 
         },
         error: (err: HttpErrorResponse) => {
           this.createError.set(`Ошибка при создании услуги: ${err.message}`);
