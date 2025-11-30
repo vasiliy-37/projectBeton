@@ -6,7 +6,8 @@ const BrandSchema = new Schema({
         type: String,
         required: true,
         unique: true 
-    }
+    },
+    price: { type: Number }
 }, { 
     collection: 'Brand' 
 });

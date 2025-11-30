@@ -1,0 +1,49 @@
+<h2>Прайс-лист (Администрирование)</h2>
+
+<div *ngIf="isLoading">Загрузка данных...</div>
+<div *ngIf="error" style="color: red;">{{ error }}</div>
+
+<table *ngIf="!isLoading && brands.length > 0" border="1" cellpadding="10" width="100%">
+  <thead>
+    <tr>
+      <th>Марка</th>
+      <th>Цена (руб.)</th>
+      <th>Действия</th> </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngFor="let brandItem of brands; let i = index">
+
+      <tr *ngIf="i === 0 || brands[i-1].type !== brandItem.type">
+        <td colspan="3" style="background-color: #f2f2f2; font-weight: bold; padding: 10px;">
+          {{ brandItem.type }}
+        </td>
+      </tr>
+
+      <tr>
+        <td>{{ brandItem.brand }}</td>
+        <td>
+          <input
+            type="number"
+            min="0"
+            [(ngModel)]="brandItem.price"
+            name="price-{{brandItem._id}}"
+            class="price-input"
+          />
+        </td>
+        <td>
+          <button
+            (click)="updatePrice(brandItem)"
+            [disabled]="!brandItem.price || brandItem.price < 0"
+          >
+            Сохранить
+          </button>
+        </td>
+      </tr>
+
+    </ng-container>
+  </tbody>
+</table>
+
+<div *ngIf="!isLoading && brands.length === 0">
+  Данных пока нет.
+</div>
