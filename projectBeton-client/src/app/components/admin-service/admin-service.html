@@ -64,9 +64,9 @@
           <tr *ngFor="let service of services(); trackBy: trackByServiceId" [class.editing]="service.isEditing">
             
             <!-- Режим просмотра -->
-            <ng-container *ngIf="!service.isEditing">
+            <ng-container>
               <td>{{ service.name }}</td>
-              <td>{{ service.price | number:'1.0-2' }}</td>
+              <td>{{ service.price }}</td>
             </ng-container>
             
             <!-- Режим редактирования -->
