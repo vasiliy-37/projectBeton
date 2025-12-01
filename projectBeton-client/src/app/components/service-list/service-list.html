@@ -7,13 +7,15 @@
   <thead>
     <tr>
       <th>Услуга</th>
-      <th>Цена (руб.)</th>
+      <!-- Заголовок столбца теперь просто "Цена" -->
+      <th>Цена</th> 
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let service of services">
       <td>{{ service.name }}</td>
-      <td>{{ service.price }}</td>
+      <!-- Объединяем цену и единицу измерения в одной ячейке -->
+      <td>{{ service.price }} {{ service.unit }}</td> 
     </tr>
   </tbody>
 </table>

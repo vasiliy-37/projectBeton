@@ -7,8 +7,12 @@ const ServiceSchema = new Schema({
          required: true
     },
     price: {
-        type: String,
+        type: Number,
          required: true
+    },
+    unit: {
+        type: String,
+        required: true
     }
 }, {collection: 'Service'});
 
