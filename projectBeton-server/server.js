@@ -20,6 +20,7 @@ const Brand = require('./models/product');
 app.use(express.json());
 
 // 1. GET /api/services - Получить все услуги (существующий маршрут)
+// Дублирующий маршрут в конце файла удален.
 app.get('/api/services', (req, res) => {
     Service.find().sort({ name: 1 })
         .then(services => res.json(services))
@@ -31,34 +32,44 @@ app.get('/api/services', (req, res) => {
 
 // 2. POST /api/services - Создать новую услугу
 app.post('/api/services', (req, res) => {
-    const { name, price } = req.body;
+    // Деструктуризация для получения нового поля unit
+    const { name, price, unit } = req.body;
 
-    if (!name || typeof price !== 'number' || price <= 0) {
-        return res.status(400).json({ error: 'Требуется непустое название и положительная цена для создания услуги.' });
+    // ВАЛИДАЦИЯ: Проверяем наличие unit, а также имя и цену.
+    // Если price в схеме Mongoose изменен на Number, проверяем его тип.
+    if (!name || typeof price !== 'number' || price <= 0 || !unit || typeof unit !== 'string') {
+        return res.status(400).json({ error: 'Требуется непустое название, положительная цена (число) и единица измерения (строка) для создания услуги.' });
     }
 
-    const newService = new Service({ name, price });
+    // Создаем новый объект, включая unit
+    const newService = new Service({ name, price, unit });
 
     newService.save()
         .then(service => res.status(201).json(service))
         .catch(err => {
             console.error('Ошибка при создании услуги:', err);
-            res.status(500).json({ error: 'Внутренняя ошибка сервера при создании услуги.' });
+            // Если Mongoose выдает ошибку валидации (например, required: true), она будет здесь.
+            res.status(500).json({ error: 'Внутренняя ошибка сервера при создании услуги.', details: err.message });
         });
 });
 
 // 3. PUT /api/services/:id - Обновить существующую услугу
 app.put('/api/services/:id', (req, res) => {
     const id = req.params.id;
-    const { name, price } = req.body;
+    // Деструктуризация для получения нового поля unit
+    const { name, price, unit } = req.body;
 
-    if (!name || typeof price !== 'number' || price <= 0) {
-        return res.status(400).json({ error: 'Требуется непустое название и положительная цена для обновления услуги.' });
+    // ВАЛИДАЦИЯ: Проверяем наличие unit, а также имя и цену.
+    if (!name || typeof price !== 'number' || price <= 0 || !unit || typeof unit !== 'string') {
+        return res.status(400).json({ error: 'Требуется непустое название, положительная цена (число) и единица измерения (строка) для обновления услуги.' });
     }
+
+    // Объект для обновления, включает name, price и unit
+    const updateData = { name, price, unit };
 
     Service.findByIdAndUpdate(
         id, 
-        { name, price }, 
+        updateData, // Используем обновленные данные
         { new: true, runValidators: true } // new: true возвращает обновленный документ; runValidators: true проверяет схему
     )
     .then(updatedService => {
@@ -69,7 +80,7 @@ app.put('/api/services/:id', (req, res) => {
     })
     .catch(err => {
         console.error('Ошибка при обновлении услуги:', err);
-        res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении услуги.' });
+        res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении услуги.', details: err.message });
     });
 });
 
@@ -104,11 +115,7 @@ app.get('/api/sandbrands', (req, res) => {
         .catch(err => res.status(404).json({ nobrandsfound: 'Пескобетона не найдено' }));
 });
 
-app.get('/api/services', (req, res) => {
-    Service.find().sort({ name: 1 })
-        .then(services => res.json(services))
-        .catch(err => res.status(404).json({ noservicesfound: 'Услуг не найдено' }));
-});
+// Удален дублирующий GET /api/services
 
 app.get('/api/get-phone-number', (req, res) => {
     // Вместо await Contact.findOne({}), используем Contact.findOne({}) без await
@@ -175,7 +182,6 @@ app.post('/api/update-price', (req, res) => {
         res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении цены.' });
     });
 });
-
 
 
 app.listen(PORT, () => {
