@@ -1,14 +1,23 @@
 .calculator-container {
-  // max-width: 450px;
-  // margin-left: auto;
-  // margin-right: 10%;
+  max-width: 450px;
+  // margin-right: 5%;
+  margin-right: 45px;
   padding: 20px;
   border-radius: 8px;
   font-family: sans-serif;
-  background-color: rgba(245, 123, 123, 0.7); 
-  border-width: 1px;
-  border-style: solid;
-  border-color: black;
+  // background-color: rgba(245, 123, 123, 0.7); 
+  // border-width: 1px;
+  background-color: rgba(255, 255, 255, 0.7); 
+      
+      /* Эффект "ретуширования" (размытие фона) */
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 24px; /* Увеличено для более мягких углов */
+      
+      /* Усиленная тень для эффекта "парения" */
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); 
+  // border-style: solid;
+  // border-color: black;
   animation: fadeInFromTop 0.8s ease-out;
     }
     

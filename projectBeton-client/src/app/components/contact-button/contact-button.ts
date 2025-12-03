@@ -1,9 +1,8 @@
 import { Component, output, EventEmitter, Output } from '@angular/core';
-import { FormInvitation } from '../form-invitation/form-invitation';
 
 @Component({
   selector: 'app-contact-button',
-  imports: [FormInvitation],
+  imports: [],
   templateUrl: './contact-button.html',
   styleUrl: './contact-button.less'
 })

@@ -1,13 +1,13 @@
 .invitation-banner {
   width: 100%; /* Занимает всю ширину */
   height: 35px; /* Высота приглашения */
-  background-color: #000000; /* Полупрозрачный цвет фона */
+  background: linear-gradient(to bottom, #555555, #000000); /* Полупрозрачный цвет фона */
   display: flex; /* Центрирование содержимого */
   align-items: center;
   justify-content: center;
   padding: 10px 20px;
   box-sizing: border-box;
-  margin: 0; /* Без внешних отступов */
+  margin-bottom: 10px; /* Без внешних отступов */
   font-family: 'Montserrat', sans-serif;
   // position: fixed; /* Закрепляем на месте при прокрутке */
   // top: 0;          /* В самом верху viewport */
@@ -35,6 +35,7 @@
 }
 
 .close-button {
+  margin-right: 15%;
   position: absolute;
   right: 10px;
   background: none;

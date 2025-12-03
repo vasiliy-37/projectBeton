@@ -3,7 +3,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 
 @Component({
   selector: 'app-order-modal',
-  imports: [ReactiveFormsModule, OrderModal],
+  imports: [ReactiveFormsModule],
   templateUrl: './order-modal.html',
   styleUrl: './order-modal.less'
 })
