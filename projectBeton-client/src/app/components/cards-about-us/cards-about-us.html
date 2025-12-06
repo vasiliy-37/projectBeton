@@ -1,0 +1,17 @@
+<div class="four-window-container">
+  
+  @for (data of windowsData; track data.logoUrl) {
+    
+    <div class="window">
+      
+      <img [src]="data.logoUrl" [alt]="data.caption" class="logo">
+      
+      <p class="caption">{{ data.caption }}</p>
+      
+    </div>
+    
+  } @empty {
+    <p>Нет данных для отображения карточек.</p>
+  }
+  
+</div>

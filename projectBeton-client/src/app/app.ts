@@ -6,10 +6,11 @@ import { Calculator } from './components/calculator/calculator';
 import { ContactButton } from './components/contact-button/contact-button';
 import { FormInvitation } from './components/form-invitation/form-invitation';
 import { Header } from './components/header/header';
+import { Footer } from './components/footer/footer';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, Invitation, NavigationBar, Calculator, ContactButton, FormInvitation, Header, ],
+  imports: [RouterOutlet, RouterLink, Invitation, NavigationBar, Calculator, ContactButton, FormInvitation, Header, Footer, ],
   templateUrl: './app.html',
   styleUrl: './app.less'
 })

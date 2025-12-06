@@ -1,6 +1,6 @@
 h1 {
     // color: #000000;
-    font-size: 48px;
+    font-size: 41px;
     font-weight: 600;
     text-transform: uppercase;
     line-height: 1;
@@ -13,7 +13,7 @@ h1 {
 
 p {
     // color: #ffffff;
-    font-size: 30px;
+    font-size: 21px;
     font-weight: 600;
     text-transform: uppercase;
     // line-height: 1;
@@ -33,6 +33,8 @@ p {
       -webkit-backdrop-filter: blur(8px); /* Для Safari */
 
       padding: 30px; 
+    //   max-width: 320px;
+
       border-radius: 24px; /* Увеличено для более мягких углов */
       
       /* Усиленная тень для эффекта "парения" */
@@ -55,43 +57,52 @@ p {
     }  
 
 .home-layout-wrapper {
-    display: flex;             /* Включаем Flexbox */
-    gap: 30px;                 /* Промежуток между колонками */
-    justify-content: space-evenly;
+    display: flex;
+    gap: 30px; 
+    /* Используем center для центрирования пары блоков, если вы не хотите растягивать их на всю ширину */
+    justify-content: space-between; /* НОВЫЙ СТИЛЬ */
     padding-top: 50px;
     // padding: 80px;             /* Отступы внутри обертки */
 }
 
 .text-content-area {
     flex: 1;                   /* Эта колонка занимает все оставшееся место */
-    min-width: 300px;
-    max-width: 700px;          
+    // min-width: 300px;
+    // max-width: 700px;          
     /* Добавляем фон, чтобы текст было видно поверх фонового изображения страницы */
     // background-color: rgba(255, 255, 255, 0.5); 
-    padding: 20px;
+    // padding: 20px;
+    margin-left: 45px;
     border-radius: 8px;
 }
 
 /* Стили для компонента калькулятора, чтобы он не растягивался */
-app-calculator{
-    display: block;
-    width: 100%;
-    max-width: 450px; /* Ограничиваем ширину калькулятора */
-}
+// app-calculator{
+//     display: block;
+//     width: 100%;
+//     max-width: 450px; /* Ограничиваем ширину калькулятора */
+// }
 
 /* Стили для заголовка и параграфа внутри текстовой области */
-.text-content-area h1 {
-    margin-top: 0; 
-}
+// .text-content-area h1 {
+//     margin-top: 0; 
+// }
 
 @media (max-width: 768px) {
 
+    h1 {
+        font-size: 27px;
+        text-align: center;
+    }
+
     p {
-    font-size: 20px;
+        display: none;
+    // font-size: 20px;
 }
 
 .home-layout-wrapper {
         /* Меняем направление колонок на вертикальное */
+        padding-top: 15px;
         flex-direction: column; 
         /* Убираем gap между колонками, если нужно */
         gap: 20px; 
@@ -102,10 +113,15 @@ app-calculator{
 
     .text-content-area {
         /* На мобильном он должен занимать всю ширину */
-        width: 100%;
-        max-width: none; /* Снимаем ограничение max-width */
-        min-width: unset;
+        // width: 100%;
+        // max-width: none; /* Снимаем ограничение max-width */
+        // min-width: unset;
+        margin-left: 0;
         padding: 0; /* Если padding: 20px уже есть в .home-layout-wrapper */
+    }
+
+    .text-background {
+        padding: 5px;
     }
 
     app-calculator {
