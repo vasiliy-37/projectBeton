@@ -1,0 +1,114 @@
+.site-footer {
+    background-color: #000000; /* Темный индустриальный фон */
+    color: #f0f0f0; /* Светлый текст */
+    padding: 40px 20px 20px;
+    font-family: 'Roboto', sans-serif; /* Рекомендую современный шрифт */
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex; /* Используем Flexbox */
+    flex-wrap: wrap;
+    gap: 30px; /* Отступы между колонками */
+    padding-bottom: 20px;
+    border-bottom: 1px solid #555; /* Разделитель */
+}
+
+.footer-section {
+    flex: 1;
+    //  1 300px; /* Позволяем колонке занимать не менее 300px и растягиваться */
+    margin-bottom: 20px;
+}
+
+.footer-section h3 {
+    color: #ec7373; /* Яркий оранжевый акцентный цвет */
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.footer-section p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.footer-section a {
+    color: #f0f0f0; /* Цвет ссылок */
+    text-decoration: none;
+    border-bottom: 1px dotted #f0f0f0; /* Пунктирное подчеркивание */
+    transition: color 0.3s;
+}
+
+.footer-section a:hover {
+    color: #ff8c00; /* Оранжевый при наведении */
+    border-bottom: 1px solid #ff8c00;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section li {
+    margin-bottom: 8px;
+}
+
+/* Стиль для нижней полосы с копирайтом */
+.footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+
+    /* 1. Общий блок футера: уменьшаем внутренние отступы */
+    .site-footer {
+        /* Уменьшаем вертикальный padding для более компактного вида */
+        padding: 30px 15px 15px; 
+    }
+
+    /* 2. Контейнер: перестраиваем и гарантируем, что колонки занимают всю ширину */
+    .footer-container {
+        flex-direction: column; 
+        /* Убеждаемся, что отступ от боков уже задан в .site-footer, 
+           здесь горизонтальный margin должен быть 0 */
+        margin-left: 0;
+        margin-right: 0;
+        gap: 15px; /* Немного уменьшаем вертикальный отступ между секциями */
+    }
+
+    /* 3. Секции футера: центрируем текст и заголовки */
+    .footer-section {
+        /* Центрируем весь встроенный контент (текст, ссылки) */
+        text-align: center; 
+        margin-bottom: 0;
+        
+        /* Убеждаемся, что каждая секция занимает всю доступную ширину */
+        width: 100%; 
+        flex-basis: auto; /* Снимаем жесткое ограничение flex-basis */
+    }
+    
+    /* 4. Заголовки секций: центрируем (если text-align: center не сработает) */
+    .footer-section h3 {
+        /* В большинстве случаев это не нужно, если центрирован родитель, 
+           но это может помочь, если h3 является блоком, который надо центрировать */
+        text-align: center;
+        // margin-bottom: 10px; /* Немного уменьшаем отступ */
+    }
+    
+    /* 5. Списки: центрируем список, если он есть */
+    .footer-section ul {
+        /* Чтобы центрировать сам блок ul, а не только текст */
+        width: fit-content; /* Ширина по контенту */
+        margin-left: auto;  /* Центрируем ul внутри родителя */
+        margin-right: auto;
+    }
+
+    /* 6. Нижняя полоса */
+    .footer-bottom {
+        padding-top: 15px; /* Немного уменьшаем отступ */
+    }
+}
