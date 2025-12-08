@@ -1,28 +1,26 @@
 .site-footer {
-    background-color: #000000; /* Темный индустриальный фон */
-    color: #f0f0f0; /* Светлый текст */
-    padding: 40px 20px 20px;
-    font-family: 'Roboto', sans-serif; /* Рекомендую современный шрифт */
+    background-color: #000000;
+    color: #f0f0f0;
+    font-family: 'Roboto', sans-serif;
+    position: relative; 
 }
 
 .footer-container {
     max-width: 1200px;
     margin: 0 auto;
-    display: flex; /* Используем Flexbox */
+    display: flex; 
     flex-wrap: wrap;
-    gap: 30px; /* Отступы между колонками */
-    padding-bottom: 20px;
-    border-bottom: 1px solid #555; /* Разделитель */
+    gap: 30px;
+    border-bottom: 1px solid #555;
 }
 
 .footer-section {
     flex: 1;
-    //  1 300px; /* Позволяем колонке занимать не менее 300px и растягиваться */
     margin-bottom: 20px;
 }
 
 .footer-section h3 {
-    color: #ec7373; /* Яркий оранжевый акцентный цвет */
+    color: #ec7373;
     margin-bottom: 15px;
     font-size: 1.2em;
 }
@@ -33,14 +31,14 @@
 }
 
 .footer-section a {
-    color: #f0f0f0; /* Цвет ссылок */
+    color: #f0f0f0; 
     text-decoration: none;
-    border-bottom: 1px dotted #f0f0f0; /* Пунктирное подчеркивание */
+    border-bottom: 1px dotted #f0f0f0; 
     transition: color 0.3s;
 }
 
 .footer-section a:hover {
-    color: #ff8c00; /* Оранжевый при наведении */
+    color: #ff8c00; 
     border-bottom: 1px solid #ff8c00;
 }
 
@@ -53,62 +51,66 @@
     margin-bottom: 8px;
 }
 
-/* Стиль для нижней полосы с копирайтом */
 .footer-bottom {
     text-align: center;
-    padding-top: 20px;
+    padding-top: 10px;
     font-size: 0.9em;
     color: #aaa;
 }
 
-/* Адаптивность для мобильных устройств */
+.scroll-arrow {
+    display: none;
+}
+
 @media (max-width: 768px) {
 
-    /* 1. Общий блок футера: уменьшаем внутренние отступы */
-    .site-footer {
-        /* Уменьшаем вертикальный padding для более компактного вида */
-        padding: 30px 15px 15px; 
-    }
+.footer-viewport {
+    overflow: hidden; 
+    width: 100%;
+}
 
-    /* 2. Контейнер: перестраиваем и гарантируем, что колонки занимают всю ширину */
-    .footer-container {
-        flex-direction: column; 
-        /* Убеждаемся, что отступ от боков уже задан в .site-footer, 
-           здесь горизонтальный margin должен быть 0 */
-        margin-left: 0;
-        margin-right: 0;
-        gap: 15px; /* Немного уменьшаем вертикальный отступ между секциями */
-    }
+.footer-container {
+    display: flex; 
+        flex-direction: row;
+   max-width: none;
+        width: 300%; 
+        flex-wrap: nowrap;
+        gap: 0; 
+        border-bottom: none; 
+        transition: transform 0.6s ease-in-out;
+}
 
-    /* 3. Секции футера: центрируем текст и заголовки */
-    .footer-section {
-        /* Центрируем весь встроенный контент (текст, ссылки) */
-        text-align: center; 
-        margin-bottom: 0;
-        
-        /* Убеждаемся, что каждая секция занимает всю доступную ширину */
-        width: 100%; 
-        flex-basis: auto; /* Снимаем жесткое ограничение flex-basis */
-    }
-    
-    /* 4. Заголовки секций: центрируем (если text-align: center не сработает) */
-    .footer-section h3 {
-        /* В большинстве случаев это не нужно, если центрирован родитель, 
-           но это может помочь, если h3 является блоком, который надо центрировать */
-        text-align: center;
-        // margin-bottom: 10px; /* Немного уменьшаем отступ */
-    }
-    
-    /* 5. Списки: центрируем список, если он есть */
-    .footer-section ul {
-        /* Чтобы центрировать сам блок ul, а не только текст */
-        width: fit-content; /* Ширина по контенту */
-        margin-left: auto;  /* Центрируем ul внутри родителя */
-        margin-right: auto;
-    }
+.footer-section {
+    flex: 0 0 33.333% !important ;
+    text-align: center; 
+    margin-bottom: 0;
+}
 
-    /* 6. Нижняя полоса */
-    .footer-bottom {
-        padding-top: 15px; /* Немного уменьшаем отступ */
-    }
+.scroll-arrow {
+        display: block !important; 
+        position: absolute;
+        top: 50%; 
+        transform: translateY(-50%);
+        background: rgba(255, 140, 0, 0.7); 
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        cursor: pointer;
+        z-index: 10;
+        font-size: 1.2em;
+        border-radius: 4px;
+        transition: background 0.3s;
+}
+
+.scroll-arrow:hover {
+    background: #ff8c00;
+}
+
+.prev-arrow {
+    left: 5px;
+}
+
+.next-arrow {
+    right: 5px;
+}
 }
