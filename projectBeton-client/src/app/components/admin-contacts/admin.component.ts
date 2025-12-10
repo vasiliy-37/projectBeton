@@ -14,7 +14,7 @@ interface PhoneData {
     standalone: true,
     imports: [FormsModule]
 })
-export class AdminComponent {
+export class AdminContacts {
     http = inject(HttpClient);
     phoneNumber: string = 'Загрузка...';
     phoneHref: string = '#';
@@ -24,7 +24,6 @@ export class AdminComponent {
     }
 
     getPhoneNumber(): void {
-        // URL вашего бэкенда. Если вы используете прокси в ng serve, просто '/api/...'
         const apiUrl = '/api/get-phone-number';
 
         this.http.get<PhoneData>(apiUrl).subscribe({
