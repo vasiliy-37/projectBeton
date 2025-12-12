@@ -1,6 +1,7 @@
 import { Component, signal, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { HttpClient } from '@angular/common/http';
+import { CommonModule } from "@angular/common";
 
 interface PhoneData {
     phoneNumber: string,
@@ -12,7 +13,7 @@ interface PhoneData {
     templateUrl: './admin.component.html',
     styleUrls: ['./admin.component.less'],
     standalone: true,
-    imports: [FormsModule]
+    imports: [FormsModule, CommonModule]
 })
 export class AdminContacts {
     http = inject(HttpClient);

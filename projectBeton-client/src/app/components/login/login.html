@@ -1,0 +1,33 @@
+<div class="login-container">
+  <h3>Вход для Администратора</h3>
+  
+  <form (ngSubmit)="onLogin()">
+    
+    <div class="form-group">
+      <label for="username">Логин:</label>
+      <input 
+        id="username" 
+        type="text" 
+        [(ngModel)]="username" 
+        name="username" 
+        placeholder="Введите admin"
+        required
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="password">Пароль:</label>
+      <input 
+        id="password" 
+        type="password" 
+        [(ngModel)]="password" 
+        name="password" 
+        required
+      >
+    </div>
+    
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+    <button type="submit">Войти</button>
+  </form>
+</div>

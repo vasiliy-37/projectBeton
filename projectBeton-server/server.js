@@ -1,5 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const cors = require('cors')
 
 const app = express();
 
@@ -10,6 +14,24 @@ const sandBrands = require('./models/sandBrands');
 const Service = require('./models/Service');
 const Contact = require('./models/contacts.js');
 const DB_URL = 'mongodb://localhost:27017/projectBeton';
+const User = require('./models/User.js')
+const JWT_SECRET = '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8258d5f39aee4cfb35dc007c77255730306c8ae0bdb049d6dd80246a06e986566b24a'
+
+const authenticateToken = (req, res, next) => {
+    const token = req.cookies.admin_auth_token; // <-- ЧИТАЕМ ИЗ КУКИ
+    
+    if (!token) {
+        return res.status(401).json({ message: 'Требуется авторизация.' });
+    }
+    
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Токен недействителен.' });
+        }
+        req.user = user; 
+        next(); 
+    });
+};
 
 mongoose.connect(DB_URL)
     .then(() => console.log('MongoDB successfully connected locally'))
@@ -17,7 +39,16 @@ mongoose.connect(DB_URL)
 
 const Brand = require('./models/product');
 
+const corsOptions = {
+    origin: 'http://localhost:4200', // Адрес вашего Angular-приложения
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'], 
+    credentials: true // <-- КЛЮЧЕВОЕ ЗНАЧЕНИЕ ДЛЯ КУК!
+};
+
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors(corsOptions));
 
 // 1. GET /api/services - Получить все услуги (существующий маршрут)
 // Дублирующий маршрут в конце файла удален.
@@ -68,20 +99,20 @@ app.put('/api/services/:id', (req, res) => {
     const updateData = { name, price, unit };
 
     Service.findByIdAndUpdate(
-        id, 
+        id,
         updateData, // Используем обновленные данные
         { new: true, runValidators: true } // new: true возвращает обновленный документ; runValidators: true проверяет схему
     )
-    .then(updatedService => {
-        if (!updatedService) {
-            return res.status(404).json({ error: `Услуга с ID ${id} не найдена.` });
-        }
-        res.json(updatedService);
-    })
-    .catch(err => {
-        console.error('Ошибка при обновлении услуги:', err);
-        res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении услуги.', details: err.message });
-    });
+        .then(updatedService => {
+            if (!updatedService) {
+                return res.status(404).json({ error: `Услуга с ID ${id} не найдена.` });
+            }
+            res.json(updatedService);
+        })
+        .catch(err => {
+            console.error('Ошибка при обновлении услуги:', err);
+            res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении услуги.', details: err.message });
+        });
 });
 
 // 4. DELETE /api/services/:id - Удалить услугу
@@ -120,18 +151,18 @@ app.get('/api/sandbrands', (req, res) => {
 app.get('/api/get-phone-number', (req, res) => {
     // Вместо await Contact.findOne({}), используем Contact.findOne({}) без await
     Contact.findOne({}).then(mainContact => {
-            if (mainContact && mainContact.phoneNumber) { 
-                res.json({ 
-                    phoneNumber: mainContact.phoneNumber, // Используем phoneNumber из БД
-                    phoneHref: `tel:${mainContact.phoneNumber.replace(/\s/g, '')}` 
-                });
-            } else {
-                res.status(404).json({ error: 'Phone number not found in DB.' });
-            }
-        }).catch(err => {
-            console.error(err);
-            res.status(500).json({ error: 'Internal server error while fetching phone number.' });
-        });
+        if (mainContact && mainContact.phoneNumber) {
+            res.json({
+                phoneNumber: mainContact.phoneNumber, // Используем phoneNumber из БД
+                phoneHref: `tel:${mainContact.phoneNumber.replace(/\s/g, '')}`
+            });
+        } else {
+            res.status(404).json({ error: 'Phone number not found in DB.' });
+        }
+    }).catch(err => {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error while fetching phone number.' });
+    });
 });
 
 app.post('/api/set-phone-number', (req, res) => {
@@ -153,7 +184,7 @@ app.post('/api/set-phone-number', (req, res) => {
 
 app.post('/api/update-price', (req, res) => {
     const { _id, type, price } = req.body;
-    let Model; 
+    let Model;
 
     if (type === 'Бетон') {
         Model = Product;
@@ -164,23 +195,91 @@ app.post('/api/update-price', (req, res) => {
     }
 
     Model.findByIdAndUpdate(
-        _id, 
-        { price: price }, 
-        { new: true } 
+        _id,
+        { price: price },
+        { new: true }
     )
-    .then(updatedDoc => {
-        if (!updatedDoc) {
-            return res.status(404).json({ error: 'Документ для обновления не найден.' });
-        }
-        res.json({
-            message: `Цена для ${updatedDoc.brand || updatedDoc.name} успешно обновлена.`,
-            newPrice: updatedDoc.price
+        .then(updatedDoc => {
+            if (!updatedDoc) {
+                return res.status(404).json({ error: 'Документ для обновления не найден.' });
+            }
+            res.json({
+                message: `Цена для ${updatedDoc.brand || updatedDoc.name} успешно обновлена.`,
+                newPrice: updatedDoc.price
+            });
+        })
+        .catch(err => {
+            console.error('Ошибка при обновлении цены:', err);
+            res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении цены.' });
         });
-    })
-    .catch(err => {
-        console.error('Ошибка при обновлении цены:', err);
-        res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении цены.' });
+});
+
+app.get('/api/status', authenticateToken, (req, res) => {
+    // Если мы сюда дошли, значит, authenticateToken сработал, и токен в куке действителен.
+    res.status(200).json({ isAuthenticated: true });
+});
+
+app.post('/api/login', async (req, res) => {
+    // 1. Получаем данные
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Требуется логин и пароль.' });
+    }
+
+    try {
+        // 2. Находим пользователя по логину через Mongoose
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            return res.status(401).json({ message: 'Неверный логин или пароль.' });
+        }
+
+        // 3. Сравниваем введенный пароль с хэшем в БД
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Неверный логин или пароль.' });
+        }
+
+        // 4. Создаем JWT-токен
+        const payload = {
+            userId: user._id,
+            role: user.role
+        };
+
+        const token = jwt.sign(
+            payload,
+            JWT_SECRET,
+            { expiresIn: '1h' } // Токен действует 1 час
+        );
+
+        // 5. Устанавливаем токен в HTTP-Only куку вместо отправки в теле ответа
+        // (Для production нужно установить secure: true)
+        res.cookie('admin_auth_token', token, {
+            httpOnly: true, // <-- Защита от XSS
+            secure: false, // <-- Установите 'true' при развертывании на HTTPS!
+            maxAge: 3600000, // 1 час в миллисекундах
+            sameSite: 'Lax' // Рекомендованная настройка
+        });
+
+        // Отправляем ответ без токена в теле
+        res.json({ message: 'Вход успешен!' });
+
+    } catch (error) {
+        console.error('Ошибка аутентификации:', error);
+        res.status(500).json({ message: 'Внутренняя ошибка сервера.' });
+    }
+});
+
+app.post('/api/logout', (req, res) => {
+    // Удаляем куку, передавая те же настройки, с которыми она была установлена
+    res.clearCookie('admin_auth_token', {
+        httpOnly: true,
+        secure: false, // <-- Установите 'true' при развертывании на HTTPS!
+        sameSite: 'Lax'
     });
+    res.json({ message: 'Выход выполнен. Кука удалена.' });
 });
 
 
