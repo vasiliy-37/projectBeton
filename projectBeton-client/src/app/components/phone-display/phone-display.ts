@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 
@@ -14,6 +14,7 @@ interface PhoneData {
   styleUrl: './phone-display.less'
 })
 export class PhoneDisplay implements OnInit {
+  
 phoneNumber: string = 'Загрузка...'; 
   phoneHref: string = '#'; 
 

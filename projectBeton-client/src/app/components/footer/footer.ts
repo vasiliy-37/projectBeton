@@ -1,8 +1,9 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { PhoneDisplay } from '../phone-display/phone-display';
 
 @Component({
   selector: 'app-footer',
-  imports: [],
+  imports: [PhoneDisplay],
   templateUrl: './footer.html',
   styleUrl: './footer.less'
 })

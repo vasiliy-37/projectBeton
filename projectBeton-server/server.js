@@ -339,6 +339,44 @@ app.post('/api/send-order', async (req, res) => {
     }
 });
 
+// НОВЫЙ МАРШРУТ: POST /api/request-call
+// Для обработки заявки на обратный звонок
+// ----------------------------------------
+app.post('/api/request-call', async (req, res) => {
+    // Получаем только имя и телефон, отправленные с Angular
+    const { name, phone } = req.body;
+
+    // Базовая валидация
+    if (!name || !phone) {
+        return res.status(400).send({ message: 'Необходимо указать имя и телефон.' });
+    }
+
+    const mailOptions = {
+        from: `"Заявка на звонок" <${process.env.EMAIL_USER}>`,
+        to: process.env.RECIPIENT_EMAIL, // Ваш адрес, куда приходят заявки (из .env)
+        subject: `ЗАПРОС НА ОБРАТНЫЙ ЗВОНОК от ${name}`,
+        html: `
+            <h2>Завка на сотрудничество!</h2>
+            <p><b>Имя клиента:</b> ${name}</p>
+            <p><b>Контактный телефон:</b> ${phone}</p>
+            <hr>
+            <p>Необходимо связаться с клиентом как можно скорее.</p>
+        `
+    };
+
+    try {
+        // Здесь используется 'transporter', который вы настроили ранее для Nodemailer
+        await transporter.sendMail(mailOptions);
+        console.log(`[CALL REQUEST] Запрос на звонок от ${name} (${phone}) успешно отправлен.`);
+        // Успешный ответ для Angular
+        res.status(200).send({ success: true, message: 'Заявка на звонок отправлена.' });
+    } catch (error) {
+        console.error('❌ Ошибка отправки почты (Заявка на звонок):', error);
+        // Ответ с ошибкой для Angular
+        res.status(500).send({ success: false, message: 'Ошибка сервера при отправке заявки.' });
+    }
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

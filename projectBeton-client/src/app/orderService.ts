@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+interface ContactData {
+  name: string;
+  phone: string;
+}
+
 // Определение типа данных, которые мы отправляем
 interface OrderData {
   name: string;
@@ -15,7 +20,7 @@ interface OrderData {
 })
 export class OrderService {
 
-  private apiUrl = 'http://localhost:3000/api/send-order'; 
+  private baseApiUrl = 'http://localhost:3000/api'; 
 
   constructor(private http: HttpClient) { }
 
@@ -24,7 +29,11 @@ export class OrderService {
    * @param orderData Объект с данными формы.
    */
   sendOrder(orderData: OrderData): Observable<any> {
-    // В Angular 20+, HttpClient автоматически сериализует объект в JSON
-    return this.http.post(this.apiUrl, orderData);
+    // Отправляем на: http://localhost:3000/api/send-order
+    return this.http.post(`${this.baseApiUrl}/send-order`, orderData);
+  }
+requestCall(contactData: ContactData): Observable<any> {
+    // Отправляем на: http://localhost:3000/api/request-call
+    return this.http.post(`${this.baseApiUrl}/request-call`, contactData);
   }
 }
