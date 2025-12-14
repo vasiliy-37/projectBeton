@@ -11,6 +11,7 @@ export interface WindowData {
 
 @Component({
   selector: 'app-home',
+  standalone: true,
   imports: [Calculator, OrderModal, CommonModule, CardsAboutUs],
   templateUrl: './home.html',
   styleUrl: './home.less'

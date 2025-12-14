@@ -7,6 +7,7 @@ import { OrderModal } from '../order-modal/order-modal';
 
 @Component({
   selector: 'app-calculator',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule, OrderButton, OrderModal],
   templateUrl: './calculator.html',
   styleUrl: './calculator.less'

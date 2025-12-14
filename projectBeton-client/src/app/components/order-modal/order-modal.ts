@@ -1,8 +1,10 @@
 import { Component, Output, EventEmitter, Input, effect, input } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { OrderService } from '../../orderService';
 
 @Component({
   selector: 'app-order-modal',
+  standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './order-modal.html',
   styleUrl: './order-modal.less'
@@ -16,7 +18,7 @@ export class OrderModal {
 
   orderForm: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private orderService: OrderService) { 
     this.orderForm = this.fb.group({
       name: ['', Validators.required],
       phone: ['', [Validators.required, Validators.pattern('[0-9]{10,}')]],
@@ -32,9 +34,24 @@ export class OrderModal {
 
   onSubmit(): void {
     if (this.orderForm.valid) {
-      console.log('Заказ бетона отправлен:', this.orderForm.value);
-      this.orderForm.reset();
-      this.closeModal.emit();
+      // 1. Сохраняем данные формы
+      const orderDetails = this.orderForm.value;
+
+      // 2. Вызываем метод сервиса для отправки данных
+      this.orderService.sendOrder(orderDetails).subscribe({
+        next: (response) => {
+          console.log('Ответ от сервера:', response);
+          alert('✅ Ваш заказ успешно отправлен! Мы свяжемся с вами в ближайшее время.');
+          
+          // 3. Сброс формы и закрытие модального окна
+          this.orderForm.reset();
+          this.closeModal.emit();
+        },
+        error: (error) => {
+          console.error('❌ Ошибка при отправке заказа:', error);
+          alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже.');
+        }
+      });
     }
   }
 }

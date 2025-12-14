@@ -1,9 +1,12 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const cors = require('cors')
+const nodemailer = require('nodemailer')
 
 const app = express();
 
@@ -49,6 +52,25 @@ const corsOptions = {
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors(corsOptions));
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com', // Используйте ваш SMTP-сервер
+    port: 465,
+    secure: true, 
+    auth: {
+        // Логин и пароль берем из вашего .env файла
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+transporter.verify(function (error, success) {
+    if (error) {
+        console.error("Ошибка при проверке транспорта Nodemailer:", error);
+    } else {
+        console.log("Nodemailer готов к отправке сообщений.");
+    }
+});
 
 // 1. GET /api/services - Получить все услуги (существующий маршрут)
 // Дублирующий маршрут в конце файла удален.
@@ -280,6 +302,41 @@ app.post('/api/logout', (req, res) => {
         sameSite: 'Lax'
     });
     res.json({ message: 'Выход выполнен. Кука удалена.' });
+});
+
+app.post('/api/send-order', async (req, res) => {
+    // Деструктуризация данных, пришедших из Angular (имя, телефон, количество, марка)
+    const { name, phone, quantity, brand } = req.body;
+
+    // Базовая валидация
+    if (!name || !phone || !quantity || !brand) {
+        return res.status(400).send({ message: 'Не все обязательные поля заполнены.' });
+    }
+
+    const mailOptions = {
+        from: `"Бетон-Заказ" <${process.env.EMAIL_USER}>`,
+        to: process.env.RECIPIENT_EMAIL, // Ваш адрес, куда должны приходить заказы (из .env)
+        subject: `НОВЫЙ ЗАКАЗ: ${brand} - ${quantity} м³`,
+        html: `
+            <h2>Детали заказа бетона</h2>
+            <p><b>Имя клиента:</b> ${name}</p>
+            <p><b>Номер телефона:</b> ${phone}</p>
+            <hr>
+            <p><b>Марка бетона:</b> ${brand}</p>
+            <p><b>Количество:</b> ${quantity} м³</p>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Заказ от ${name} (${phone}) успешно отправлен.`);
+        // Ответ Angular
+        res.status(200).send({ success: true, message: 'Заказ успешно отправлен.' });
+    } catch (error) {
+        console.error('Ошибка отправки почты:', error);
+        // Ответ Angular с ошибкой
+        res.status(500).send({ success: false, message: 'Ошибка сервера при отправке почты.' });
+    }
 });
 
 
