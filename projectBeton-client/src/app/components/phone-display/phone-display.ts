@@ -1,11 +1,6 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { PhoneDataService } from '../../phone-data.service';
 import { CommonModule } from '@angular/common';
-
-interface PhoneData {
-  phoneNumber: string,
-  phoneHref: string;
-}
 
 @Component({
   selector: 'app-phone-display',
@@ -18,18 +13,11 @@ export class PhoneDisplay implements OnInit {
 phoneNumber: string = 'Загрузка...'; 
   phoneHref: string = '#'; 
 
-  // Внедряем HttpClient напрямую в компонент
-  constructor(private http: HttpClient) {}
+  // Внедряем только наш сервис с данными
+  constructor(private phoneDataService: PhoneDataService) {}
 
   ngOnInit(): void {
-    this.getPhoneNumber();
-  }
-
-  getPhoneNumber(): void {
-    // URL вашего бэкенда. Если вы используете прокси в ng serve, просто '/api/...'
-    const apiUrl = '/api/get-phone-number'; 
-
-    this.http.get<PhoneData>(apiUrl).subscribe({
+    this.phoneDataService.getPhoneNumberData().subscribe({
       next: data => {
         this.phoneNumber = data.phoneNumber;
         this.phoneHref = data.phoneHref;

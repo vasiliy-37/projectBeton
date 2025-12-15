@@ -1,39 +1,67 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { PhoneDisplay } from '../phone-display/phone-display';
+import { PhoneDataService } from '../../phone-data.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-footer',
-  imports: [PhoneDisplay],
+  imports: [],
   templateUrl: './footer.html',
   styleUrl: './footer.less'
 })
+
 export class Footer implements OnInit, OnDestroy {
-currentIndex: number = 0; 
-  totalSections: number = 3;
-  sectionWidth: number = 100 / this.totalSections; 
-  currentOffset: number = 0; 
-  
-  // Переменные для автопрокрутки
-  autoScrollInterval: any;
-  AUTO_SCROLL_DELAY: number = 5000; 
+
+  public phoneNumber: string = 'Загрузка...';
+  public phoneHref: string = '#';
+  private dataSubscription: Subscription | undefined;
+
+  currentIndex: number = 0;
+  totalSections: number = 3;
+  sectionWidth: number = 100 / this.totalSections;
+  currentOffset: number = 0;
+
+  constructor(private PhoneDataService: PhoneDataService) { }
+
+  ngOnInit(): void {
+    this.dataSubscription = this.PhoneDataService.getPhoneNumberData().subscribe({
+      next: data => {
+        this.phoneNumber = data.phoneNumber;
+        this.phoneHref = data.phoneHref;
+      },
+      error: err => {
+        console.error('Ошибка загрузки номера телефона в футере:', err);
+        this.phoneNumber = 'Номер недоступен';
+        this.phoneHref = '#';
+      }
+    });
+
+    this.checkScreenSize();
+
+    // Запускаем автопрокрутку только на мобильных
+    if (this.isMobile()) {
+      this.startAutoScroll();
+    }
+
+  }
+
+  ngOnDestroy(): void {
+        if (this.dataSubscription) {
+            this.dataSubscription.unsubscribe(); // Очистка подписки
+        }
+        this.stopAutoScroll(); // Ваша существующая логика
+    }
+
+  // Переменные для автопрокрутки
+  autoScrollInterval: any;
+  AUTO_SCROLL_DELAY: number = 5000;
 
   // Точка переключения между мобильным и десктопным макетом
-  readonly MOBILE_BREAKPOINT = 768; 
+  readonly MOBILE_BREAKPOINT = 768;
 
   // Проверяет, является ли текущий размер экрана мобильным
   isMobile(): boolean {
     return typeof window !== 'undefined' && window.innerWidth <= this.MOBILE_BREAKPOINT;
   }
-
-  ngOnInit(): void {
-    // Проверяем размер экрана при старте
-    this.checkScreenSize();
-    
-    // Запускаем автопрокрутку только на мобильных
-    if (this.isMobile()) {
-        this.startAutoScroll();
-    }
-  }
 
   // 🛑 Новая функция: Сброс при изменении размера экрана
   @HostListener('window:resize', ['$event'])
@@ -55,58 +83,54 @@ currentIndex: number = 0;
       this.stopAutoScroll();
     }
   }
-  
-  ngOnDestroy(): void {
-    this.stopAutoScroll();
-  }
 
-  // ------------------------------------------------------------------
-  // ЛОГИКА ПРОКРУТКИ
-  // ------------------------------------------------------------------
+  // ------------------------------------------------------------------
+  // ЛОГИКА ПРОКРУТКИ
+  // ------------------------------------------------------------------
 
-  updateOffset(): void {
+  updateOffset(): void {
     // Применяем смещение только если мы на мобильном
     if (this.isMobile()) {
-       this.currentOffset = -(this.currentIndex * this.sectionWidth);
+      this.currentOffset = -(this.currentIndex * this.sectionWidth);
     } else {
-        // На десктопе всегда 0
-        this.currentOffset = 0;
+      // На десктопе всегда 0
+      this.currentOffset = 0;
     }
-  }
+  }
 
-  nextSection(): void {
+  nextSection(): void {
     if (!this.isMobile()) return; // Игнорируем нажатия на десктопе
 
-    this.stopAutoScroll(); 
-    this.currentIndex = (this.currentIndex + 1) % this.totalSections;
-    this.updateOffset();
-  }
+    this.stopAutoScroll();
+    this.currentIndex = (this.currentIndex + 1) % this.totalSections;
+    this.updateOffset();
+  }
 
-  prevSection(): void {
+  prevSection(): void {
     if (!this.isMobile()) return; // Игнорируем нажатия на десктопе
 
-    this.stopAutoScroll();
-    this.currentIndex = (this.currentIndex - 1 + this.totalSections) % this.totalSections;
-    this.updateOffset();
-  }
+    this.stopAutoScroll();
+    this.currentIndex = (this.currentIndex - 1 + this.totalSections) % this.totalSections;
+    this.updateOffset();
+  }
 
-  // ------------------------------------------------------------------
-  // ЛОГИКА АВТОПРОКРУТКИ
-  // --------------------------------------------------
-  
-  startAutoScroll(): void {
+  // ------------------------------------------------------------------
+  // ЛОГИКА АВТОПРОКРУТКИ
+  // --------------------------------------------------
+
+  startAutoScroll(): void {
     if (!this.isMobile()) return; // Не запускаем на десктопе
 
-    this.autoScrollInterval = setInterval(() => {
-      this.currentIndex = (this.currentIndex + 1) % this.totalSections;
-      this.updateOffset();
-    }, this.AUTO_SCROLL_DELAY);
-  }
+    this.autoScrollInterval = setInterval(() => {
+      this.currentIndex = (this.currentIndex + 1) % this.totalSections;
+      this.updateOffset();
+    }, this.AUTO_SCROLL_DELAY);
+  }
 
-  stopAutoScroll(): void {
-    if (this.autoScrollInterval) {
-      clearInterval(this.autoScrollInterval);
+  stopAutoScroll(): void {
+    if (this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
       this.autoScrollInterval = null; // Сброс, чтобы можно было запустить снова
-    }
-  }
+    }
+  }
 }
