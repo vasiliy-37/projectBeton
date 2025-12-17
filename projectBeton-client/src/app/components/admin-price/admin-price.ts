@@ -34,7 +34,7 @@ export class AdminPrice implements OnInit {
 
   // Вспомогательная функция сортировки (чтобы категории всегда шли вместе)
   private sortBrands(brands: Brand[]): Brand[] {
-    return brands.sort((a, b) => {
+    return [...brands].sort((a, b) => {
       if (a.category < b.category) return -1;
       if (a.category > b.category) return 1;
       return a.brand.localeCompare(b.brand);
