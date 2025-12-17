@@ -1,6 +1,5 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, computed } from '@angular/core';
 import { PhoneDataService } from '../../phone-data.service';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-footer',
@@ -10,30 +9,30 @@ import { Subscription } from 'rxjs';
 })
 
 export class Footer implements OnInit, OnDestroy {
+  
+  readonly phoneNumber = computed(() => {
+    if (this.phoneDataService.isLoading()) {
+      return 'Загрузка...';
+    }
+    // Если данные есть, берем номер; иначе — сообщение об ошибке
+    return this.phoneDataService.phoneData()?.phoneNumber ?? 'Номер недоступен';
+  });
+  
+  readonly phoneHref = computed(() => {
+    // Если данные есть, берем ссылку; иначе — '#'
+    return this.phoneDataService.phoneData()?.phoneHref ?? '#';
+  });
 
-  public phoneNumber: string = 'Загрузка...';
-  public phoneHref: string = '#';
-  private dataSubscription: Subscription | undefined;
 
   currentIndex: number = 0;
   totalSections: number = 3;
   sectionWidth: number = 100 / this.totalSections;
   currentOffset: number = 0;
 
-  constructor(private PhoneDataService: PhoneDataService) { }
+  constructor(private phoneDataService: PhoneDataService) { } // Исправлено для конвенции
 
   ngOnInit(): void {
-    this.dataSubscription = this.PhoneDataService.getPhoneNumberData().subscribe({
-      next: data => {
-        this.phoneNumber = data.phoneNumber;
-        this.phoneHref = data.phoneHref;
-      },
-      error: err => {
-        console.error('Ошибка загрузки номера телефона в футере:', err);
-        this.phoneNumber = 'Номер недоступен';
-        this.phoneHref = '#';
-      }
-    });
+    // 🛑 Блок с подпиской на RxJS полностью удален!
 
     this.checkScreenSize();
 
@@ -41,15 +40,12 @@ export class Footer implements OnInit, OnDestroy {
     if (this.isMobile()) {
       this.startAutoScroll();
     }
-
   }
 
   ngOnDestroy(): void {
-        if (this.dataSubscription) {
-            this.dataSubscription.unsubscribe(); // Очистка подписки
-        }
-        this.stopAutoScroll(); // Ваша существующая логика
-    }
+    // 🛑 dataSubscription.unsubscribe() удалено.
+    this.stopAutoScroll(); 
+  }
 
   // Переменные для автопрокрутки
   autoScrollInterval: any;

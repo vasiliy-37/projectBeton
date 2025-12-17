@@ -23,24 +23,24 @@ export class FormInvitation {
   }
 
   // Метод для обработки отправки формы
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.contactForm.valid) {
-      const callDetails = this.contactForm.value; // Получаем { name, phone }
+      const callDetails = this.contactForm.value;
 
-      // 3. ОТПРАВКА ДАННЫХ ЧЕРЕЗ СЕРВИС
-      this.orderService.requestCall(callDetails).subscribe({
-        next: (response) => {
-          // Успешный ответ от сервера
-          alert('✅ Заявка на звонок успешно отправлена! Ожидайте, мы перезвоним.');
-          this.contactForm.reset();
-          this.closeModal.emit(); // Закрываем окно
-        },
-        error: (error) => {
-          // Ошибка, если сервер вернул 500 или другая проблема сети
-          console.error('❌ Ошибка отправки заявки:', error);
-          alert('Произошла ошибка при отправке заявки. Пожалуйста, проверьте консоль.');
-        }
-      });
+      try {
+        // 🛑 Используем await вместо .subscribe()
+        const response = await this.orderService.requestCall(callDetails);
+        
+        // Логика при успешном ответе
+        alert('✅ Заявка на звонок успешно отправлена! Ожидайте, мы перезвоним.');
+        this.contactForm.reset();
+        this.closeModal.emit();
+
+      } catch (error) {
+        // 🛑 Обработка ошибок в блоке catch
+        console.error('❌ Ошибка отправки заявки:', error);
+        alert('Произошла ошибка при отправке заявки. Пожалуйста, попробуйте позже.');
+      }
     }
   }
 }

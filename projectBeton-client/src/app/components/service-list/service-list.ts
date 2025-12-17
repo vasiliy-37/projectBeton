@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
 
 const ALLOWED_UNITS = ['руб.', 'руб/м³', 'руб/км', 'руб/час'] as const;
 type ServiceUnit = typeof ALLOWED_UNITS[number];

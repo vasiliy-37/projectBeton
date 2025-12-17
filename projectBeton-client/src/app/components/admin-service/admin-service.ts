@@ -1,9 +1,9 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpErrorResponse, provideHttpClient } from '@angular/common/http';
-import { finalize } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy } from '@angular/core';
+import { firstValueFrom } from 'rxjs'; // Единственный импорт для конвертации
 
 const ALLOWED_UNITS = ['руб.', 'руб/м³', 'руб/км', 'руб/час'] as const;
 type ServiceUnit = typeof ALLOWED_UNITS[number];
@@ -19,6 +19,7 @@ export interface ServiceItem {
 
 @Component({
   selector: 'app-admin-service',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin-service.html',
@@ -26,172 +27,122 @@ export interface ServiceItem {
 })
 export class AdminService implements OnInit {
   
-  // --- Состояние компонента с использованием сигналов ---
+  // --- Состояние компонента ---
   services = signal<ServiceItem[]>([]);
   isLoading = signal(true);
   error = signal<string | null>(null);
   
-  // Состояние формы создания
   newService = signal<Omit<ServiceItem, '_id'| 'isSaving'| 'isEditing'>>({ name: '', price: 0, unit: 'руб.'});
   isCreating = signal(false);
   createError = signal<string | null>(null);
 
   readonly allowedUnits = ALLOWED_UNITS;
-  private apiUrl = '/api/services'; // Эндпоинт для работы с услугами
-  private http = inject(HttpClient); // Инъекция HttpClient
+  private apiUrl = '/api/services';
+  private http = inject(HttpClient);
 
-  // Computed signal для валидации формы создания (название должно быть и цена > 0)
   isNewServiceValid = computed(() => 
     !!this.newService().name && this.newService().price > 0
   );
   
-  // --- Вспомогательные методы для работы с ngModel и сигналами ---
-
-  // Обновление названия новой услуги
-  onNewServiceNameChange(name: string) {
-    this.newService.update(s => ({ ...s, name }));
-  }
-
-  // Обновление цены новой услуги
-  onNewServicePriceChange(price: number) {
-    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
-    this.newService.update(s => ({ ...s, price: isNaN(numericPrice) ? 0 : numericPrice }));
-  }
-
-  onNewServiceUnitChange(unit: string) {
-    this.newService.update(s => ({ ...s, unit: unit as ServiceUnit }));
-  }
-
   ngOnInit(): void {
     this.fetchServices();
   }
 
-  // Для оптимизации рендеринга в ngFor
+  // --- CRUD: READ ---
+  async fetchServices() {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    try {
+      const data = await firstValueFrom(this.http.get<ServiceItem[]>(this.apiUrl));
+      this.services.set(data.map(s => ({ 
+        ...s,
+        unit: s.unit || 'руб.',
+        isSaving: false,
+        isEditing: false 
+      })));
+    } catch (err) {
+      this.error.set('Не удалось загрузить услуги.');
+      console.error('Ошибка загрузки:', err);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  // --- CRUD: CREATE ---
+  async createService() {
+    if (!this.isNewServiceValid()) return;
+
+    this.isCreating.set(true);
+    this.createError.set(null);
+
+    try {
+      const service = await firstValueFrom(this.http.post<ServiceItem>(this.apiUrl, this.newService()));
+      
+      this.services.update(services => [
+        ...services, 
+        { ...service, isSaving: false, isEditing: false }
+      ]);
+      this.newService.set({ name: '', price: 0, unit: 'руб.'}); 
+    } catch (err: any) {
+      this.createError.set(`Ошибка при создании услуги: ${err.message}`);
+    } finally {
+      this.isCreating.set(false);
+    }
+  }
+  
+  // --- CRUD: UPDATE ---
+  async updateService(service: ServiceItem) {
+    // Ставим флаг загрузки для конкретной строки
+    this.setServiceState(service._id, { isSaving: true });
+
+    try {
+      const body = { name: service.name, price: service.price, unit: service.unit };
+      await firstValueFrom(this.http.put<ServiceItem>(`${this.apiUrl}/${service._id}`, body));
+      
+      this.setServiceState(service._id, { isSaving: false, isEditing: false });
+      console.log(`Услуга "${service.name}" обновлена.`);
+    } catch (err) {
+      console.error('Ошибка обновления:', err);
+      this.setServiceState(service._id, { isSaving: false });
+    }
+  }
+  
+  // --- CRUD: DELETE ---
+  async deleteService(service: ServiceItem) {
+    if (!window.confirm(`Удалить услугу: "${service.name}"?`)) return;
+    
+    this.setServiceState(service._id, { isSaving: true });
+
+    try {
+      await firstValueFrom(this.http.delete(`${this.apiUrl}/${service._id}`));
+      this.services.update(services => services.filter(s => s._id !== service._id));
+    } catch (err) {
+      console.error('Ошибка удаления:', err);
+      this.setServiceState(service._id, { isSaving: false });
+    }
+  }
+
+  // Вспомогательный метод для обновления состояния конкретной услуги в массиве
+  private setServiceState(id: string, partial: Partial<ServiceItem>) {
+    this.services.update(services => services.map(s => 
+      s._id === id ? { ...s, ...partial } : s
+    ));
+  }
+
+  toggleEdit(service: ServiceItem): void {
+    this.setServiceState(service._id, { isEditing: !service.isEditing });
+  }
+
   trackByServiceId(index: number, item: ServiceItem): string {
     return item._id;
   }
 
-  // --- CRUD: READ (Чтение/Загрузка) ---
-  fetchServices(): void {
-    this.isLoading.set(true);
-    this.error.set(null);
-    this.http.get<ServiceItem[]>(this.apiUrl)
-      .pipe(
-        finalize(() => this.isLoading.set(false))
-      )
-      .subscribe({
-        next: (data) => {
-          // Инициализируем флаги состояния для каждого элемента
-          this.services.set(data.map(s => ({ ...s,
-              unit: s.unit || 'руб.',
-              isSaving: false,
-              isEditing: false 
-            })));
-        },
-        error: (err: HttpErrorResponse) => {
-          this.error.set('Не удалось загрузить услуги. Проверьте, запущен ли сервер Express.js.');
-          console.error('Ошибка загрузки:', err);
-        }
-      });
+  // Методы обновления полей формы (оставляем как есть или переводим на прямое обновление в HTML)
+  onNewServiceNameChange(name: string) { this.newService.update(s => ({ ...s, name })); }
+  onNewServicePriceChange(price: number) {
+    const num = typeof price === 'string' ? parseFloat(price) : price;
+    this.newService.update(s => ({ ...s, price: isNaN(num) ? 0 : num }));
   }
-
-  // --- CRUD: CREATE (Создание) ---
-  createService(): void {
-    this.isCreating.set(true);
-    this.createError.set(null);
-    
-    if (!this.isNewServiceValid()) {
-      this.isCreating.set(false);
-      return;
-    }
-
-    this.http.post<ServiceItem>(this.apiUrl, this.newService())
-      .pipe(
-        finalize(() => this.isCreating.set(false))
-      )
-      .subscribe({
-        next: (service) => {
-          console.log(`Услуга "${service.name}" успешно создана.`);
-          // Добавляем новую услугу в массив сигналов
-          this.services.update(services => [
-            ...services, 
-            { ...service, isSaving: false, isEditing: false }
-          ]);
-          // Сброс формы
-          this.newService.set({ name: '', price: 0, unit: 'руб.'}); 
-        },
-        error: (err: HttpErrorResponse) => {
-          this.createError.set(`Ошибка при создании услуги: ${err.message}`);
-          console.error('Ошибка создания:', err);
-        }
-      });
-  }
-  
-  // --- CRUD: UPDATE (Обновление/Редактирование) ---
-  updateService(service: ServiceItem): void {
-    // Установка флага isSaving для текущей строки
-    this.services.update(services => services.map(s => 
-      s._id === service._id ? { ...s, isSaving: true } : s
-    ));
-
-    const body = { name: service.name, price: service.price };
-
-    this.http.put<ServiceItem>(`${this.apiUrl}/${service._id}`, body)
-      .pipe(
-        finalize(() => {
-          // Снятие флагов сохранения и редактирования
-          this.services.update(services => services.map(s => 
-            s._id === service._id ? { ...s, isSaving: false, isEditing: false } : s
-          ));
-        })
-      )
-      .subscribe({
-        next: () => {
-          console.log(`Услуга "${service.name}" успешно обновлена.`);
-        },
-        error: (err: HttpErrorResponse) => {
-          console.error(`Не удалось обновить услугу "${service.name}".`, err);
-        }
-      });
-  }
-  
-  // --- CRUD: DELETE (Удаление) ---
-  deleteService(service: ServiceItem): void {
-    // Используем window.confirm для подтверждения
-    if (!window.confirm(`Выверены, что хотите удалить услугу: "${service.name}"?`)) {
-      return;
-    }
-    
-    // Установка флага isSaving для текущей строки
-    this.services.update(services => services.map(s => 
-      s._id === service._id ? { ...s, isSaving: true } : s
-    ));
-
-    this.http.delete(`${this.apiUrl}/${service._id}`)
-      .pipe(
-        finalize(() => {
-          // Снятие флага isSaving в случае ошибки
-          this.services.update(services => services.map(s => 
-            s._id === service._id ? { ...s, isSaving: false } : s
-          ));
-        })
-      )
-      .subscribe({
-        next: () => {
-          console.log(`Услуга "${service.name}" успешно удалена.`);
-          // Удаление услуги из локального массива сигналов
-          this.services.update(services => services.filter(s => s._id !== service._id));
-        },
-        error: (err: HttpErrorResponse) => {
-          console.error(`Не удалось удалить услугу "${service.name}".`, err);
-        }
-      });
-  }
-  
-  // Вспомогательный метод для переключения режима редактирования
-  toggleEdit(service: ServiceItem): void {
-    this.services.update(services => services.map(s => 
-      s._id === service._id ? { ...s, isEditing: !s.isEditing } : s
-    ));
-  }
+  onNewServiceUnitChange(unit: string) { this.newService.update(s => ({ ...s, unit: unit as ServiceUnit })); }
 }

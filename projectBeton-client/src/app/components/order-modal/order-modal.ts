@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input, effect, input } from '@angular/core';
+import { Component, Output, EventEmitter, effect, input } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { OrderService } from '../../orderService';
 
@@ -32,26 +32,26 @@ export class OrderModal {
     });
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.orderForm.valid) {
-      // 1. Сохраняем данные формы
       const orderDetails = this.orderForm.value;
 
-      // 2. Вызываем метод сервиса для отправки данных
-      this.orderService.sendOrder(orderDetails).subscribe({
-        next: (response) => {
-          console.log('Ответ от сервера:', response);
-          alert('✅ Ваш заказ успешно отправлен! Мы свяжемся с вами в ближайшее время.');
-          
-          // 3. Сброс формы и закрытие модального окна
-          this.orderForm.reset();
-          this.closeModal.emit();
-        },
-        error: (error) => {
-          console.error('❌ Ошибка при отправке заказа:', error);
-          alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже.');
-        }
-      });
+      try {
+        // 🛑 Вместо .subscribe() используем await
+        const response = await this.orderService.sendOrder(orderDetails);
+        
+        console.log('Ответ от сервера:', response);
+        alert('✅ Ваш заказ успешно отправлен! Мы свяжемся с вами в ближайшее время.');
+        
+        // Сброс формы и закрытие модального окна
+        this.orderForm.reset();
+        this.closeModal.emit();
+
+      } catch (error) {
+        // 🛑 Обработка ошибок теперь в блоке catch
+        console.error('❌ Ошибка при отправке заказа:', error);
+        alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже.');
+      }
     }
   }
 }

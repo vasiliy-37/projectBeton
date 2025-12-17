@@ -1,35 +1,32 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../auth';
-import { Inject } from '@angular/core';
-
 
 @Component({
   selector: 'app-admin-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive,],
+  standalone: true, // Добавляем, так как используем современные импорты
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.less'
 })
 export class AdminLayout {
-// 1. Инжектируем AuthService
-  private authService = inject(AuthService); // Используем inject() для современного подхода
+  private authService = inject(AuthService);
+  private router = inject(Router); // Переводим на inject для единообразия
 
-  // 2. Оставляем Router
-  constructor(private router: Router) {}
-
-  goToPublic() {
-    // 3. Вызываем logout() и только при успехе переходим на главную
-    this.authService.logout().subscribe({
-        next: () => {
-            console.log('Выход выполнен, перенаправление на главную.');
-            this.router.navigate(['/']); // Перенаправляем на /
-        },
-        error: (err) => {
-             // Если произошла ошибка (например, куки уже нет или сервер недоступен), 
-             // мы все равно должны перенаправить пользователя на публичный сайт.
-            console.error('Ошибка при выходе, но перенаправляем:', err);
-            this.router.navigate(['/']); 
-        }
-    });
+  /**
+   * Метод для выхода из админ-панели
+   */
+  async goToPublic() {
+    try {
+      // 🛑 Просто ждем завершения логаута
+      await this.authService.logout();
+      console.log('Выход выполнен успешно');
+    } catch (err) {
+      // Если сервер вернул ошибку, просто логируем её
+      console.error('Ошибка при запросе на выход, но продолжаем редирект:', err);
+    } finally {
+      // 🛑 В любом случае (успех или ошибка) уводим пользователя на главную
+      this.router.navigate(['/']);
+    }
   }
 }

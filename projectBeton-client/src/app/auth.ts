@@ -1,66 +1,88 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, of, catchError, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs'; // Используем для чистого преобразования в Promise
 
-// Интерфейс для данных, которые мы отправляем
 interface UserCredentials {
   username: string;
   password: string;
 }
 
-// Интерфейс для данных, которые мы получаем от бэкенда
 interface LoginResponse {
   token: string;
   message: string;
 }
 
 @Injectable({
-  // providedIn: 'root' делает сервис доступным во всем приложении
   providedIn: 'root'
 })
 export class AuthService {
-  // Внедрение зависимостей через inject() - современный подход в Angular 20
   private http = inject(HttpClient);
   private router = inject(Router);
   
-  // URL вашего бэкенда для входа, совпадает с маршрутом в server.js
-  private readonly loginUrl = '/api/login';  
+  private readonly loginUrl = '/api/login';
+  private readonly statusUrl = '/api/status';
+  private readonly logoutUrl = '/api/logout';
+
+  // 🛑 Состояние авторизации теперь в Сигнале
+  // К нему можно будет обращаться из любого компонента: authService.isAuthenticated()
+  private _isAuthenticated = signal<boolean>(false);
+  readonly isAuthenticated = this._isAuthenticated.asReadonly();
 
   /**
-   * Отправляет запрос на бэкенд для входа и сохраняет токен.
+   * Вход в систему
    */
-  login(credentials: UserCredentials): Observable<LoginResponse> {
-        // Добавляем { withCredentials: true }
-        return this.http.post<LoginResponse>(this.loginUrl, credentials, { withCredentials: true })
-            .pipe(
-                // Токен в куке, ничего сохранять не нужно.
-                tap(() => {
-                    this.router.navigate(['/admin/contacts']);
-                })
-            );
-    }
+  async login(credentials: UserCredentials): Promise<LoginResponse> {
+    try {
+      // firstValueFrom — это современный способ превратить Observable в Promise (лучше чем toPromise)
+      const response = await firstValueFrom(
+        this.http.post<LoginResponse>(this.loginUrl, credentials, { withCredentials: true })
+      );
 
-    logout(): Observable<any> { 
-        // Просто возвращаем Observable, чтобы вызывающий компонент решал, куда навигировать
-        return this.http.post('/api/logout', {}, { withCredentials: true });
-    }
-
-checkAuthStatus(): Observable<boolean> {
-        // Запрос отправляет куку благодаря withCredentials: true
-        return this.http.get<{ isAuthenticated: boolean }>('/api/status', { withCredentials: true })
-            .pipe(
-                // Если запрос успешен (200 OK), значит, пользователь авторизован
-                tap(response => console.log('Auth check successful')),
-                map(response => response.isAuthenticated),
-                // Если запрос падает (401 Unauthorized), перехватываем ошибку
-                catchError(err => {
-                    console.error('Auth check failed:', err);
-                    // Перенаправляем на логин при неудаче
-                    this.router.navigate(['/login']);
-                    // Возвращаем Observable с false
-                    return of(false);
-                })
-            );
+      this._isAuthenticated.set(true); // Обновляем состояние
+      this.router.navigate(['/admin/contacts']);
+      return response;
+    } catch (error) {
+      this._isAuthenticated.set(false);
+      throw error;
     }
   }
+
+  /**
+   * Выход из системы
+   */
+  async logout(): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post(this.logoutUrl, {}, { withCredentials: true })
+      );
+      this._isAuthenticated.set(false);
+      this.router.navigate(['/login']);
+      return response;
+    } catch (error) {
+      console.error('Logout error:', error);
+      this._isAuthenticated.set(false);
+      throw error;
+    }
+  }
+
+  /**
+   * Проверка статуса (используется в Guard и при старте приложения)
+   */
+  async checkAuthStatus(): Promise<boolean> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<{ isAuthenticated: boolean }>(this.statusUrl, { withCredentials: true })
+      );
+      
+      const isAuth = response.isAuthenticated;
+      this._isAuthenticated.set(isAuth); // Синхронизируем сигнал с ответом бэкенда
+      return isAuth;
+    } catch (err) {
+      console.error('Auth check failed:', err);
+      this._isAuthenticated.set(false);
+      this.router.navigate(['/login']);
+      return false;
+    }
+  }
+}

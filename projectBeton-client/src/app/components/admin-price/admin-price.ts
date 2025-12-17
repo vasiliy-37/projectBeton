@@ -1,9 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
-import { map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 export interface Brand {
   _id: string;
@@ -14,59 +12,60 @@ export interface Brand {
 
 @Component({
   selector: 'app-admin-price',
-  imports: [CommonModule, FormsModule],
+  standalone: true,
+  imports: [ FormsModule],
   templateUrl: './admin-price.html',
   styleUrl: './admin-price.less'
 })
 export class AdminPrice implements OnInit {
-  brands: Brand[] = []; 
-  isLoading = true;
-  error: string | null = null;
+  // --- Состояние на Сигналах ---
+  brands = signal<Brand[]>([]);
+  isLoading = signal(true);
+  error = signal<string | null>(null);
   
-  // API URLs
   private brandsApiUrl = '/api/brands'; 
   private sandBrandsApiUrl = '/api/sandbrands'; 
-  private updatePriceApiUrl = '/api/update-price'; // <-- Новый URL для обновления
+  private updatePriceApiUrl = '/api/update-price';
 
-  constructor(private http: HttpClient) { }
+  private http = inject(HttpClient);
 
   ngOnInit(): void {
     this.fetchData();
   }
 
-  fetchData(): void {
-    this.isLoading = true;
+  /**
+   * Загрузка данных: заменяем forkJoin на Promise.all
+   */
+  async fetchData() {
+    this.isLoading.set(true);
+    this.error.set(null);
 
-    // 1. Запрос бетона
-    const brands$ = this.http.get<Brand[]>(this.brandsApiUrl).pipe(
-      map(data => data.map(item => ({ ...item, type: 'Бетон' })))
-    );
+    try {
+      // Запускаем оба запроса параллельно
+      const [concrete, sand] = await Promise.all([
+        firstValueFrom(this.http.get<Brand[]>(this.brandsApiUrl)),
+        firstValueFrom(this.http.get<Brand[]>(this.sandBrandsApiUrl))
+      ]);
 
-    // 2. Запрос пескобетона
-    const sandBrands$ = this.http.get<Brand[]>(this.sandBrandsApiUrl).pipe(
-      map(data => data.map(item => ({ ...item, type: 'Пескобетон' })))
-    );
+      // Обрабатываем данные (добавляем типы) и объединяем
+      const combined = [
+        ...concrete.map(item => ({ ...item, type: 'Бетон' })),
+        ...sand.map(item => ({ ...item, type: 'Пескобетон' }))
+      ];
 
-    // 3. Объединяем результаты
-    forkJoin([brands$, sandBrands$]).subscribe({
-      next: ([brandsData, sandBrandsData]) => {
-        this.brands = [...brandsData, ...sandBrandsData]; 
-        this.isLoading = false;
-        this.error = null;
-      },
-      error: (err) => {
-        this.error = 'Не удалось загрузить все данные.';
-        this.isLoading = false;
-        console.error(err);
-      }
-    });
+      this.brands.set(combined);
+    } catch (err) {
+      this.error.set('Не удалось загрузить все данные.');
+      console.error(err);
+    } finally {
+      this.isLoading.set(false);
+    }
   }
   
   /**
-   * Отправляет обновленную цену на сервер.
-   * @param brand Объект Brand с обновленной ценой.
+   * Обновление цены: заменяем .subscribe на async/await
    */
-  updatePrice(brand: Brand): void {
+  async updatePrice(brand: Brand) {
     if (brand.price === undefined || brand.price < 0) {
       alert('Пожалуйста, введите корректную цену.');
       return;
@@ -78,14 +77,12 @@ export class AdminPrice implements OnInit {
       price: brand.price
     };
 
-    this.http.post(this.updatePriceApiUrl, body).subscribe({
-      next: () => {
-        alert(`Цена для ${brand.brand} успешно обновлена!`);
-      },
-      error: (err) => {
-        console.error(`Ошибка при обновлении цены для ${brand.brand}:`, err);
-        alert(`Не удалось обновить цену для ${brand.brand}.`);
-      }
-    });
+    try {
+      await firstValueFrom(this.http.post(this.updatePriceApiUrl, body));
+      alert(`Цена для ${brand.brand} успешно обновлена!`);
+    } catch (err) {
+      console.error(`Ошибка при обновлении цены для ${brand.brand}:`, err);
+      alert(`Не удалось обновить цену для ${brand.brand}.`);
+    }
   }
 }
