@@ -3,13 +3,20 @@ const Schema = mongoose.Schema;
 
 const BrandSchema = new Schema({
     brand: { 
-        type: String,
-        required: true,
-        unique: true 
+        type: String, 
+        required: true 
     },
-    price: { type: Number }
+    price: { 
+        type: Number, 
+        default: 0 
+    },
+    category: { 
+        type: String, 
+        required: true,
+        index: true // Добавляем индекс для быстрого поиска по категориям
+    }
 }, { 
-    collection: 'Brand' 
+    collection: 'AllBrands' // Назовем коллекцию универсально
 });
 
-module.exports = Brand = mongoose.model('Brand', BrandSchema);
+module.exports = mongoose.model('Brand', BrandSchema);

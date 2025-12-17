@@ -22,17 +22,17 @@ const JWT_SECRET = '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8
 
 const authenticateToken = (req, res, next) => {
     const token = req.cookies.admin_auth_token; // <-- ЧИТАЕМ ИЗ КУКИ
-    
+
     if (!token) {
         return res.status(401).json({ message: 'Требуется авторизация.' });
     }
-    
+
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
             return res.status(403).json({ message: 'Токен недействителен.' });
         }
-        req.user = user; 
-        next(); 
+        req.user = user;
+        next();
     });
 };
 
@@ -45,7 +45,7 @@ const Brand = require('./models/product');
 const corsOptions = {
     origin: 'http://localhost:4200', // Адрес вашего Angular-приложения
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'], 
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true // <-- КЛЮЧЕВОЕ ЗНАЧЕНИЕ ДЛЯ КУК!
 };
 
@@ -56,10 +56,10 @@ app.use(cors(corsOptions));
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com', // Используйте ваш SMTP-сервер
     port: 465,
-    secure: true, 
+    secure: true,
     auth: {
         // Логин и пароль берем из вашего .env файла
-        user: process.env.EMAIL_USER, 
+        user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     }
 });
@@ -84,7 +84,7 @@ app.get('/api/services', (req, res) => {
 });
 
 // 2. POST /api/services - Создать новую услугу
-app.post('/api/services', (req, res) => {
+app.post('/api/services', authenticateToken , (req, res) => {
     // Деструктуризация для получения нового поля unit
     const { name, price, unit } = req.body;
 
@@ -107,7 +107,7 @@ app.post('/api/services', (req, res) => {
 });
 
 // 3. PUT /api/services/:id - Обновить существующую услугу
-app.put('/api/services/:id', (req, res) => {
+app.put('/api/services/:id', authenticateToken , (req, res) => {
     const id = req.params.id;
     // Деструктуризация для получения нового поля unit
     const { name, price, unit } = req.body;
@@ -138,7 +138,7 @@ app.put('/api/services/:id', (req, res) => {
 });
 
 // 4. DELETE /api/services/:id - Удалить услугу
-app.delete('/api/services/:id', (req, res) => {
+app.delete('/api/services/:id', authenticateToken , (req, res) => {
     const id = req.params.id;
 
     Service.findByIdAndDelete(id)
@@ -156,17 +156,37 @@ app.delete('/api/services/:id', (req, res) => {
 });
 
 app.get('/api/brands', (req, res) => {
-    Brand.find() // Mongoose найдет все документы в коллекции 'brands'
-        .sort({ name: 1 })
-        .then(brands => res.json(brands)) // И вернет их в формате JSON
-        .catch(err => res.status(404).json({ nobrandsfound: 'Марок не найдено' }));
+    Brand.find().sort({ category: 1, brand: 1 })
+        .then(brands => res.json(brands))
+        .catch(err => res.status(500).json({ error: 'Ошибка загрузки' }));
 });
 
-app.get('/api/sandbrands', (req, res) => {
-    sandBrands.find().sort({ brand: 1 })
-        .then(brands => res.json(brands))
-        .catch(err => res.status(404).json({ nobrandsfound: 'Пескобетона не найдено' }));
+// 2. Создать новую марку в ЛЮБОЙ категории
+app.post('/api/brands', authenticateToken, (req, res) => {
+    const { brand, price, category } = req.body;
+
+    if (!brand || !category) {
+        return res.status(400).json({ error: 'Имя и категория обязательны' });
+    }
+
+    const newBrand = new Brand({ brand, price, category });
+    newBrand.save()
+        .then(doc => res.status(201).json(doc))
+        .catch(err => res.status(500).json({ error: 'Ошибка сохранения' }));
 });
+
+// 3. Удалить марку
+app.delete('/api/brands/:id', authenticateToken, (req, res) => {
+    Brand.findByIdAndDelete(req.params.id)
+        .then(() => res.status(204).send())
+        .catch(err => res.status(500).json({ error: 'Ошибка удаления' }));
+});
+
+// app.get('/api/sandbrands', (req, res) => {
+//     sandBrands.find().sort({ brand: 1 })
+//         .then(brands => res.json(brands))
+//         .catch(err => res.status(404).json({ nobrandsfound: 'Пескобетона не найдено' }));
+// });
 
 // Удален дублирующий GET /api/services
 
@@ -204,36 +224,28 @@ app.post('/api/set-phone-number', (req, res) => {
         });
 });
 
-app.post('/api/update-price', (req, res) => {
-    const { _id, type, price } = req.body;
-    let Model;
+app.post('/api/update-price', authenticateToken, (req, res) => {
+    const { _id, price } = req.body; // Поле type нам больше не нужно для выбора модели
 
-    if (type === 'Бетон') {
-        Model = Product;
-    } else if (type === 'Пескобетон') {
-        Model = sandBrands;
-    } else {
-        return res.status(400).json({ error: 'Неизвестный тип продукта. Обновление невозможно.' });
-    }
-
-    Model.findByIdAndUpdate(
+    // Мы используем модель Brand (которая ссылается на ./models/product)
+    Brand.findByIdAndUpdate(
         _id,
         { price: price },
         { new: true }
     )
-        .then(updatedDoc => {
-            if (!updatedDoc) {
-                return res.status(404).json({ error: 'Документ для обновления не найден.' });
-            }
-            res.json({
-                message: `Цена для ${updatedDoc.brand || updatedDoc.name} успешно обновлена.`,
-                newPrice: updatedDoc.price
-            });
-        })
-        .catch(err => {
-            console.error('Ошибка при обновлении цены:', err);
-            res.status(500).json({ error: 'Внутренняя ошибка сервера при обновлении цены.' });
+    .then(updatedDoc => {
+        if (!updatedDoc) {
+            return res.status(404).json({ error: 'Документ не найден.' });
+        }
+        res.json({
+            message: `Цена для ${updatedDoc.brand} успешно обновлена.`,
+            newPrice: updatedDoc.price
         });
+    })
+    .catch(err => {
+        console.error('Ошибка при обновлении цены:', err);
+        res.status(500).json({ error: 'Ошибка сервера при обновлении цены.' });
+    });
 });
 
 app.get('/api/status', authenticateToken, (req, res) => {

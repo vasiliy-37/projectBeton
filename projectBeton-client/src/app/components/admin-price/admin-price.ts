@@ -1,88 +1,107 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common'; // Добавь для пайпов и базовых штук
 import { firstValueFrom } from 'rxjs';
 
 export interface Brand {
   _id: string;
   brand: string;
-  price?: number;
-  type?: string;
+  price: number; // Сделаем обязательным для админки
+  category: string;
+  isEditing?: boolean; // ЛОКАЛЬНОЕ поле для UI
 }
 
 @Component({
   selector: 'app-admin-price',
   standalone: true,
-  imports: [ FormsModule],
+  imports: [FormsModule, CommonModule], // Добавь CommonModule
   templateUrl: './admin-price.html',
   styleUrl: './admin-price.less'
 })
 export class AdminPrice implements OnInit {
-  // --- Состояние на Сигналах ---
   brands = signal<Brand[]>([]);
   isLoading = signal(true);
-  error = signal<string | null>(null);
   
-  private brandsApiUrl = '/api/brands'; 
-  private sandBrandsApiUrl = '/api/sandbrands'; 
-  private updatePriceApiUrl = '/api/update-price';
+  // Состояние для новой марки
+  newBrand = signal({ brand: '', price: 0, category: '' });
+  isCreating = signal(false);
 
   private http = inject(HttpClient);
+  private apiUrl = '/api/brands';
 
-  ngOnInit(): void {
-    this.fetchData();
+  ngOnInit() { this.fetchData(); }
+
+  // Вспомогательная функция сортировки (чтобы категории всегда шли вместе)
+  private sortBrands(brands: Brand[]): Brand[] {
+    return brands.sort((a, b) => {
+      if (a.category < b.category) return -1;
+      if (a.category > b.category) return 1;
+      return a.brand.localeCompare(b.brand);
+    });
   }
 
-  /**
-   * Загрузка данных: заменяем forkJoin на Promise.all
-   */
   async fetchData() {
     this.isLoading.set(true);
-    this.error.set(null);
-
     try {
-      // Запускаем оба запроса параллельно
-      const [concrete, sand] = await Promise.all([
-        firstValueFrom(this.http.get<Brand[]>(this.brandsApiUrl)),
-        firstValueFrom(this.http.get<Brand[]>(this.sandBrandsApiUrl))
-      ]);
-
-      // Обрабатываем данные (добавляем типы) и объединяем
-      const combined = [
-        ...concrete.map(item => ({ ...item, type: 'Бетон' })),
-        ...sand.map(item => ({ ...item, type: 'Пескобетон' }))
-      ];
-
-      this.brands.set(combined);
-    } catch (err) {
-      this.error.set('Не удалось загрузить все данные.');
-      console.error(err);
+      const data = await firstValueFrom(this.http.get<Brand[]>(this.apiUrl));
+      // При получении данных добавляем всем isEditing: false
+      const formattedData = data.map(b => ({ ...b, isEditing: false }));
+      this.brands.set(this.sortBrands(formattedData));
     } finally {
       this.isLoading.set(false);
     }
   }
-  
-  /**
-   * Обновление цены: заменяем .subscribe на async/await
-   */
-  async updatePrice(brand: Brand) {
-    if (brand.price === undefined || brand.price < 0) {
-      alert('Пожалуйста, введите корректную цену.');
-      return;
-    }
 
-    const body = {
-      _id: brand._id,
-      type: brand.type,
-      price: brand.price
-    };
+  async createBrand() {
+    const data = this.newBrand();
+    if (!data.brand || !data.category) return;
 
+    this.isCreating.set(true);
     try {
-      await firstValueFrom(this.http.post(this.updatePriceApiUrl, body));
-      alert(`Цена для ${brand.brand} успешно обновлена!`);
-    } catch (err) {
-      console.error(`Ошибка при обновлении цены для ${brand.brand}:`, err);
-      alert(`Не удалось обновить цену для ${brand.brand}.`);
+      const created = await firstValueFrom(this.http.post<Brand>(this.apiUrl, data));
+      // Добавляем новый бренд в список и сразу сортируем
+      this.brands.update(prev => this.sortBrands([...prev, { ...created, isEditing: false }]));
+      // Сброс формы
+      this.newBrand.set({ brand: '', price: 0, category: '' });
+    } finally {
+      this.isCreating.set(false);
     }
+  }
+
+  async deleteBrand(id: string) {
+    if (!confirm('Удалить эту марку?')) return;
+    try {
+      await firstValueFrom(this.http.delete(`${this.apiUrl}/${id}`));
+      this.brands.update(prev => prev.filter(b => b._id !== id));
+    } catch (err) {
+      alert('Ошибка при удалении');
+    }
+  }
+  
+  // Метод сохранения изменений
+  async saveUpdate(brand: Brand) {
+    try {
+      await firstValueFrom(this.http.post('/api/update-price', { 
+          _id: brand._id, 
+          price: brand.price,
+          brand: brand.brand,     // Передаем обновленное имя
+          category: brand.category // И категорию тоже (вдруг опечатались)
+      }));
+      
+      brand.isEditing = false; // Закрываем режим редактирования
+      alert('Данные успешно сохранены!');
+      
+      // На всякий случай пересортируем (если изменилась категория)
+      this.brands.update(prev => this.sortBrands([...prev]));
+      
+    } catch (err) {
+      alert('Ошибка при сохранении. Проверьте данные.');
+    }
+  }
+
+  // Переключатель режима редактирования
+  toggleEdit(brand: Brand) {
+    brand.isEditing = !brand.isEditing;
   }
 }
