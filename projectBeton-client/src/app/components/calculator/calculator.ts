@@ -1,91 +1,91 @@
-import { Component, computed, EventEmitter, Output, signal} from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, OnInit, signal, inject, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common'; 
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { OrderButton } from '../order-button/order-button';
-import { OrderModal } from '../order-modal/order-modal';
+
+interface Brand {
+  _id: string; 
+  brand: string; 
+  price: number; 
+  category: string;
+}
 
 @Component({
   selector: 'app-calculator',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, OrderButton, OrderModal],
+  imports: [CommonModule, ReactiveFormsModule, OrderButton],
   templateUrl: './calculator.html',
   styleUrl: './calculator.less'
 })
-export class Calculator {
-  private fb = new FormBuilder();
+export class Calculator implements OnInit {
+  private fb = inject(FormBuilder);
+  private http = inject(HttpClient);
 
-  // @Output() orderClicked = new EventEmitter<{volume: number, price: number}>();
+  // Событие для передачи данных в Home
+  @Output() orderRequested = new EventEmitter<{ volume: number, grade: string }>();
 
-  pricePerCubicMeter = {
-    'M100': 3500,
-    'M200': 4000,
-    'M300': 4500,
-    'M400': 5000.
-  };
+  allBrands = signal<Brand[]>([]);
+  isLoading = signal(true);
 
-  getObjectKeys(obj: any): string[] {
-    return Object.keys(obj);
+  // Источники данных (сигналы)
+  selectedCategory = signal('');
+  selectedGrade = signal('');
+  volumeValue = signal(0);
+
+  form = this.fb.group({
+    category: [''],
+    grade: [''],
+    volume: [0, [Validators.required, Validators.min(0.1)]]
+  });
+
+  ngOnInit() {
+    this.loadPrices();
   }
 
-  volumeInputMethod = signal<'manual' | 'calc'>('manual');
-
-  manualVolumeForm = this.fb.group({
-    volume: [0, [Validators.required, Validators.min(0)]]
-  })
-
-  volumeCalculatorForm = this.fb.group({
-    length: [0, [Validators.required, Validators.min(0)]],
-    width: [0, [Validators.required, Validators.min(0)]],
-    height: [0, [Validators.required, Validators.min(0)]],
-  })
-
-  concreteGradeForm = this.fb.group({
-    grade: ['M200', [Validators.required]]
-  })
-
-  manualVolume = toSignal(this.manualVolumeForm.controls.volume.valueChanges, { initialValue: 0 });
-  volumeDimensions = toSignal(this.volumeCalculatorForm.valueChanges, { initialValue: { length: 0, width: 0, height: 0 } });
-  selectedGrade = toSignal(this.concreteGradeForm.controls.grade.valueChanges, { initialValue: 'M200' });
-
-   calculatedVolume = computed(() => {
-  const dimensions = this.volumeDimensions();
-  return (dimensions.length ?? 0) * (dimensions.width ?? 0) * (dimensions.height ?? 0);
-});
-
-  finalVolume = computed(() => {
-    if (this.volumeInputMethod() === 'manual') {
-      return this.manualVolume() || 0;
-    } else {
-      return this.calculatedVolume();
+  async loadPrices() {
+    try {
+      const data = await firstValueFrom(this.http.get<Brand[]>('/api/brands'));
+      this.allBrands.set(data);
+      if (data.length > 0) {
+        const first = data[0];
+        this.form.patchValue({ category: first.category, grade: first.brand });
+        this.syncSignals();
+      }
+    } catch (e) {
+      console.error('Ошибка загрузки прайса', e);
+    } finally {
+      this.isLoading.set(false);
     }
-  });
+  }
+
+  // Обновляем сигналы из формы
+  syncSignals() {
+    const val = this.form.getRawValue();
+    this.selectedCategory.set(val.category || '');
+    this.selectedGrade.set(val.grade || '');
+    this.volumeValue.set(Number(val.volume) || 0);
+  }
+
+  uniqueCategories = computed(() => [...new Set(this.allBrands().map(b => b.category))]);
+  
+  filteredBrands = computed(() => 
+    this.allBrands().filter(b => b.category === this.selectedCategory())
+  );
 
   totalPrice = computed(() => {
-    const grade = this.selectedGrade();
-    const volume = this.finalVolume();
-    const price = grade ? this.pricePerCubicMeter[grade as keyof typeof this.pricePerCubicMeter] : 0;
-    return volume * price;
+    const brand = this.allBrands().find(b => 
+      b.brand === this.selectedGrade() && b.category === this.selectedCategory()
+    );
+    return brand ? (brand.price * this.volumeValue()) : 0;
   });
 
-  changeInputMethod(method: 'manual' | 'calc') {
-    this.volumeInputMethod.set(method);
-  }
-
-  // onOpenModalClick(): void {
-  //   this.orderClicked.emit({
-  //     volume: this.finalVolume(),
-  //     price: this.totalPrice()
-  //   });
-  // }
-
-  openModalClick = signal(false);
-  
-  onOpenModalClick(): void {
-    this.openModalClick.set(true);
-  }
-
-  closeOpenModalClick(): void {
-    this.openModalClick.set(false)
+  // Кнопка "Заказать" теперь просто кидает данные наверх
+  onOpenModalClick() {
+    this.orderRequested.emit({
+      volume: this.volumeValue(),
+      grade: this.selectedGrade()
+    });
   }
 }

@@ -1,7 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, signal } from '@angular/core'; // Добавил signal
 import { Calculator } from '../calculator/calculator';
 import { OrderModal } from '../order-modal/order-modal';
-import { CommonModule} from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { CardsAboutUs } from '../cards-about-us/cards-about-us';
 
 export interface WindowData {
@@ -17,28 +17,25 @@ export interface WindowData {
   styleUrl: './home.less'
 })
 export class Home {
-
-  @ViewChild(Calculator) calculator!: Calculator;
+  // Состояние модалки и данных заказа
+  showModal = signal(false);
+  orderData = signal<{ volume: number, grade: string } | null>(null);
 
   appWindowsData: WindowData[] = [
     { logoUrl: 'assets/logo-klass.png', caption: 'Отдел продаж' },
-    { logoUrl: 'assets/logo-zavod.png', caption: 'Отдел поддержки' },
-    { logoUrl: 'assets/logo-mixer.png', caption: 'Отдел маркетинга' },
-    { logoUrl: 'assets/logo-nasos.png', caption: 'Отдел разработки' }
+    { logoUrl: 'assets/logo-zavod.png', caption: 'Отдел логистики' }, // Поменял для смысла
+    { logoUrl: 'assets/logo-mixer.png', caption: 'Доставка' },
+    { logoUrl: 'assets/logo-nasos.png', caption: 'Бетононасосы' }
   ];
 
-// showModalInsteadText = signal(false);
+  // Метод, который вызывается, когда калькулятор "кричит" orderRequested
+  handleOrderRequest(data: { volume: number, grade: string }): void {
+    this.orderData.set(data);
+    this.showModal.set(true);
+  }
 
-// orderData = signal<{volume: number, price: number} | null>(null);
-
-// hadleOrderRequest(data: { volume: number, price: number}): void {
-//   this.orderData.set(data);
-//   this.showModalInsteadText.set(true);
-// }
-
-// closeModal(): void {
-//   this.showModalInsteadText.set(false);
-//   this.orderData.set(null);
-// }
+  closeModal(): void {
+    this.showModal.set(false);
+    this.orderData.set(null);
+  }
 }
-

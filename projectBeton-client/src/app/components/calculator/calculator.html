@@ -1,86 +1,37 @@
-<div class="calculator-container">
-  <h2>Калькулятор цены бетона</h2>
+<div class="calculator-container" [formGroup]="form">
+  <h2>Заказ бетона онлайн</h2>
 
-  <!-- Блок выбора режима ввода -->
-  <div class="input-method-selection">
-    <label>
-      <input
-        type="radio"
-        name="volumeMethod"
-        [checked]="volumeInputMethod() === 'manual'"
-        (change)="changeInputMethod('manual')"
-      />
-      Ввести объем вручную
-    </label>
-    <label>
-      <input
-        type="radio"
-        name="volumeMethod"
-        [checked]="volumeInputMethod() === 'calc'"
-        (change)="changeInputMethod('calc')"
-      />
-      Рассчитать объем
-    </label>
-  </div>
+  @if (isLoading()) {
+    <p>Сверяем цены с базой...</p>
+  } @else {
+    <div class="grade-selection">
+      <label>Что заказываем?</label>
+      <select formControlName="category" (change)="syncSignals()">
+        @for (cat of uniqueCategories(); track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
 
-  <!-- Блок ручного ввода -->
-  @if (volumeInputMethod() === 'manual') {
-    <form [formGroup]="manualVolumeForm" class="manual-input">
-      <label for="manualVolume">Введите объем (м³):</label>
-      <input
-        id="manualVolume"
-        type="number"
-        formControlName="volume"
-      />
-    </form>
+    <div class="grade-selection">
+      <label>Выберите марку:</label>
+      <select formControlName="grade" (change)="syncSignals()">
+        @for (item of filteredBrands(); track item._id) {
+          <option [value]="item.brand">{{ item.brand }} — {{ item.price }} руб/м³</option>
+        }
+      </select>
+    </div>
+
+    <div class="manual-input">
+      <label>Необходимый объем (м³):</label>
+      <input type="number" formControlName="volume" (input)="syncSignals()" placeholder="Например: 5">
+    </div>
+
+    <div class="result-display">
+      <div class="res-item">К заказу: <strong>{{ volumeValue() }} м³</strong></div>
+      <div class="res-item total">Сумма: <strong>{{ totalPrice() | number:'1.0-0' }} руб.</strong></div>
+      
+      <app-order-button (click)="onOpenModalClick()"></app-order-button>
+    </div>
   }
-
-  <!-- Блок калькулятора объема -->
-  @if (volumeInputMethod() === 'calc') {
-    <form [formGroup]="volumeCalculatorForm" class="volume-calculator">
-      <h3>Калькулятор объема (м³)</h3>
-      <div class="input-group">
-        <label for="length">Длина:</label>
-        <input id="length" type="number" formControlName="length" />
-      </div>
-      <div class="input-group">
-        <label for="width">Ширина:</label>
-        <input id="width" type="number" formControlName="width" />
-      </div>
-      <div class="input-group">
-        <label for="height">Высота:</label>
-        <input id="height" type="number" formControlName="height" />
-      </div>
-    </form>
-  }
-
-  <!-- Блок выбора марки бетона -->
-  <form [formGroup]="concreteGradeForm" class="grade-selection">
-    <label for="grade">Выберите марку бетона:</label>
-    <select id="grade" formControlName="grade">
-      @for (item of pricePerCubicMeter | keyvalue; track item.key) {
-    <option [value]="item.key">
-      {{ item.key }} ({{ item.value }} руб/м³)
-    </option>
-  }
-    </select>
-  </form>
-
-  <!-- Блок с результатом -->
-  <div class="result-display">
-    <h3>Итоговый расчет</h3>
-    <p>Объем: {{ finalVolume() | number: '1.2-2' }} м³</p>
-    <p>Цена: {{ totalPrice() | currency: 'RUB':'symbol':'1.2-2' }}</p>
-    
-    <app-order-button (openModal)="onOpenModalClick()"></app-order-button>
-
-    <!-- @if(openModalClick()) {
-      <app-order-modal 
-      (closeModal)="closeOpenModalClick()"
-      [volume]="finalVolume()" 
-      [grade]="selectedGrade()!">
-    </app-order-modal>
-    } -->
-    
-  </div>
 </div>
