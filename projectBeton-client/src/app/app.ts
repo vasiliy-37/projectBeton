@@ -7,10 +7,11 @@ import { ContactButton } from './components/contact-button/contact-button';
 import { FormInvitation } from './components/form-invitation/form-invitation';
 import { Header } from './components/header/header';
 import { Footer } from './components/footer/footer';
+import { ChatWidgetComponent } from './components/chat-widget/chat-widget';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, Invitation, NavigationBar, Calculator, ContactButton, FormInvitation, Header, Footer, ],
+  imports: [RouterOutlet, RouterLink, Invitation, NavigationBar, Calculator, ContactButton, FormInvitation, Header, Footer, ChatWidgetComponent],
   templateUrl: './app.html',
   styleUrl: './app.less'
 })

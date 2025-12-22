@@ -2,6 +2,11 @@ require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
+
+const http = require('http');
+const { Server } = require('socket.io');
+const chatController = require('./controllers/chatController.js')
+
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -9,6 +14,7 @@ const cors = require('cors')
 const nodemailer = require('nodemailer')
 
 const app = express();
+const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
 
@@ -19,6 +25,14 @@ const Contact = require('./models/contacts.js');
 const DB_URL = 'mongodb://localhost:27017/projectBeton';
 const User = require('./models/User.js')
 const JWT_SECRET = '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8258d5f39aee4cfb35dc007c77255730306c8ae0bdb049d6dd80246a06e986566b24a'
+
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:4200",
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
 
 const authenticateToken = (req, res, next) => {
     const token = req.cookies.admin_auth_token; // <-- ЧИТАЕМ ИЗ КУКИ
@@ -72,6 +86,61 @@ transporter.verify(function (error, success) {
     }
 });
 
+// --- ЛОГИКА СОКЕТОВ ---
+io.on('connection', (socket) => {
+    // 1. Вход в комнату (по guestId из Angular)
+    socket.on('join_chat', async (guestId) => {
+        socket.join(guestId);
+
+        const existingChat = await chatController.getChatByGuestId(guestId);
+
+        if (existingChat) {
+
+            socket.emit('chat_history', existingChat.messages);
+        }
+        socket.on('admin_get_all_chats', async () => {
+            const chats = await chatController.getAllActiveChats();
+            socket.emit('admin_chat_list', chats);
+        });
+
+        // Когда админ хочет отвечать конкретному гостю
+        socket.on('admin_join_guest_chat', async (guestId) => {
+            socket.join(guestId);
+            const existingChat = await chatController.getChatByGuestId(guestId);
+            if (existingChat) {
+                socket.emit('chat_history', existingChat.messages);
+            }
+        });
+    });
+
+    // 2. Получение сообщения
+    socket.on('send_message', async (data) => {
+        const { guestId, text, sender } = data;
+
+        const newMessage = {
+            text: text,
+            sender: sender || 'user',
+            timestamp: new Date()
+        };
+
+        try {
+            // Сохраняем в базу и обновляем таймер (TTL)
+            await chatController.saveMessage(guestId, newMessage);
+
+            // Отправляем обратно в комнату клиента (и тебе в админку)
+            io.to(guestId).emit('receive_message', newMessage);
+
+            if (sender !== 'admin') {
+            const allChats = await chatController.getAllActiveChats();
+            // Кидаем всем (io.emit), чтобы у админа сработал слушатель
+            io.emit('admin_chat_list', allChats);
+            }
+        } catch (err) {
+            console.error("Ошибка сохранения сообщения:", err);
+        }
+    });
+});
+
 // 1. GET /api/services - Получить все услуги (существующий маршрут)
 // Дублирующий маршрут в конце файла удален.
 app.get('/api/services', (req, res) => {
@@ -84,7 +153,7 @@ app.get('/api/services', (req, res) => {
 });
 
 // 2. POST /api/services - Создать новую услугу
-app.post('/api/services', authenticateToken , (req, res) => {
+app.post('/api/services', authenticateToken, (req, res) => {
     // Деструктуризация для получения нового поля unit
     const { name, price, unit } = req.body;
 
@@ -107,7 +176,7 @@ app.post('/api/services', authenticateToken , (req, res) => {
 });
 
 // 3. PUT /api/services/:id - Обновить существующую услугу
-app.put('/api/services/:id', authenticateToken , (req, res) => {
+app.put('/api/services/:id', authenticateToken, (req, res) => {
     const id = req.params.id;
     // Деструктуризация для получения нового поля unit
     const { name, price, unit } = req.body;
@@ -138,7 +207,7 @@ app.put('/api/services/:id', authenticateToken , (req, res) => {
 });
 
 // 4. DELETE /api/services/:id - Удалить услугу
-app.delete('/api/services/:id', authenticateToken , (req, res) => {
+app.delete('/api/services/:id', authenticateToken, (req, res) => {
     const id = req.params.id;
 
     Service.findByIdAndDelete(id)
@@ -233,19 +302,19 @@ app.post('/api/update-price', authenticateToken, (req, res) => {
         { price: price },
         { new: true }
     )
-    .then(updatedDoc => {
-        if (!updatedDoc) {
-            return res.status(404).json({ error: 'Документ не найден.' });
-        }
-        res.json({
-            message: `Цена для ${updatedDoc.brand} успешно обновлена.`,
-            newPrice: updatedDoc.price
+        .then(updatedDoc => {
+            if (!updatedDoc) {
+                return res.status(404).json({ error: 'Документ не найден.' });
+            }
+            res.json({
+                message: `Цена для ${updatedDoc.brand} успешно обновлена.`,
+                newPrice: updatedDoc.price
+            });
+        })
+        .catch(err => {
+            console.error('Ошибка при обновлении цены:', err);
+            res.status(500).json({ error: 'Ошибка сервера при обновлении цены.' });
         });
-    })
-    .catch(err => {
-        console.error('Ошибка при обновлении цены:', err);
-        res.status(500).json({ error: 'Ошибка сервера при обновлении цены.' });
-    });
 });
 
 app.get('/api/status', authenticateToken, (req, res) => {
@@ -390,6 +459,6 @@ app.post('/api/request-call', async (req, res) => {
 });
 
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

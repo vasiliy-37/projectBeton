@@ -9,6 +9,7 @@ import { AdminService } from './components/admin-service/admin-service';
 import { AdminLayout } from './components/admin-layout/admin-layout';
 import { LoginComponent } from './components/login/login';
 import { AuthGuard } from './auth-guard';
+import { AdminChatsComponent } from './components/admin-chats/admin-chats';
 
 export const routes: Routes = [
     { path: '', component: Home, title: 'Главная' },
@@ -26,6 +27,7 @@ export const routes: Routes = [
             { path: 'price', component: AdminPrice, title: 'Админка-Прайса'}, 
             { path: 'service', component: AdminService, title: 'Админка-Услуги'}, 
             { path: 'contacts', component: AdminContacts, title: 'Админка' },
+            { path: 'chats', component: AdminChatsComponent, title: 'Чаты' },
             { path: '', redirectTo: 'contacts', pathMatch: 'full' }
         ]
     },
