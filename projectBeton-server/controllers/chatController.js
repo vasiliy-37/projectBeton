@@ -9,12 +9,12 @@ const ChatSession = require('../models/ChatSession');
 const saveMessage = async (guestId, messageData) => {
   try {
     const updatedChat = await ChatSession.findOneAndUpdate(
-      { guestId: guestId }, 
-      { 
+      { guestId: guestId },
+      {
         $push: { messages: messageData }, // Добавляем сообщение в массив
         $set: { lastActivity: new Date() } // Сбрасываем таймер удаления (TTL) на 1 час
       },
-      { 
+      {
         upsert: true, // Создать чат, если его нет
         new: true     // Вернуть уже обновленный документ
       }
@@ -37,10 +37,21 @@ const getChatByGuestId = async (guestId) => {
 
 const getAllActiveChats = async () => {
   try {
-    // Находим все сессии и сортируем по последней активности (свежие сверху)
-    return await ChatSession.find().sort({ lastActivity: -1 });
+    const chats = await ChatSession.find().sort({ updatedAt: -1 });
+    return chats.map(chat => {
+      // Считаем непрочитанные сообщения от пользователя
+      // (Убедись, что при сохранении сообщения поле read: false добавляется)
+      const unreadCount = chat.messages.filter(m => m.sender === 'user' && !m.read).length;
+
+      return {
+        guestId: chat.guestId,
+        lastActivity: chat.updatedAt || chat.lastActivity,
+        unreadCount: unreadCount, 
+        messages: chat.messages
+      };
+    });
   } catch (error) {
-    console.error("Ошибка получения всех чатов:", error);
+    console.error("Ошибка при получении всех чатов:", error);
     return [];
   }
 };

@@ -14,7 +14,8 @@ const chatSessionSchema = new mongoose.Schema({
     {
       text: { type: String, required: true },
       sender: { type: String, enum: ['user', 'admin'], required: true },
-      timestamp: { type: Date, default: Date.now }
+      timestamp: { type: Date, default: Date.now },
+      read: { type: Boolean, default: false }
     }
   ],
 

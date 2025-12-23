@@ -1,8 +1,8 @@
 <div class="admin-dashboard-wrapper">
-    
+
     <header class="admin-header">
         <h1>Панель Управления</h1>
-        <button (click)="goToPublic()">Выйти на Сайт</button> 
+        <button (click)="goToPublic()">Выйти на Сайт</button>
     </header>
 
     <div class="admin-main-area">
@@ -10,12 +10,16 @@
             <a routerLink="/admin/price" routerLinkActive="active">Прайс-лист</a>
             <a routerLink="/admin/service" routerLinkActive="active">Услуги</a>
             <a routerLink="/admin/contacts" routerLinkActive="active">Контакты</a>
-            <a routerLink="/admin/chats" routerLinkActive="active">Сообщения 💬</a>
+            <a routerLink="/admin/chats" routerLinkActive="active">Сообщения 💬@if (chatService.totalUnread() > 0) {
+                <span class="menu-unread-badge">
+                    {{ chatService.totalUnread() }}
+                </span>
+                }</a>
         </nav>
 
         <main class="admin-content">
-            <router-outlet></router-outlet> 
+            <router-outlet></router-outlet>
         </main>
     </div>
-    
-    </div>
+
+</div>

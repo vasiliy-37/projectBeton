@@ -23,8 +23,9 @@ const sandBrands = require('./models/sandBrands');
 const Service = require('./models/Service');
 const Contact = require('./models/contacts.js');
 const DB_URL = 'mongodb://localhost:27017/projectBeton';
-const User = require('./models/User.js')
-const JWT_SECRET = '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8258d5f39aee4cfb35dc007c77255730306c8ae0bdb049d6dd80246a06e986566b24a'
+const User = require('./models/User.js');
+const JWT_SECRET = '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8258d5f39aee4cfb35dc007c77255730306c8ae0bdb049d6dd80246a06e986566b24a';
+const ChatSession = require('./models/ChatSession.js');
 
 const io = new Server(server, {
     cors: {
@@ -88,55 +89,79 @@ transporter.verify(function (error, success) {
 
 // --- ЛОГИКА СОКЕТОВ ---
 io.on('connection', (socket) => {
-    // 1. Вход в комнату (по guestId из Angular)
+    console.log('Новое подключение:', socket.id);
+
+    // 1. Вход в комнату (для гостя или админа, чтобы получать сообщения)
     socket.on('join_chat', async (guestId) => {
         socket.join(guestId);
-
         const existingChat = await chatController.getChatByGuestId(guestId);
-
         if (existingChat) {
-
             socket.emit('chat_history', existingChat.messages);
         }
-        socket.on('admin_get_all_chats', async () => {
-            const chats = await chatController.getAllActiveChats();
-            socket.emit('admin_chat_list', chats);
-        });
-
-        // Когда админ хочет отвечать конкретному гостю
-        socket.on('admin_join_guest_chat', async (guestId) => {
-            socket.join(guestId);
-            const existingChat = await chatController.getChatByGuestId(guestId);
-            if (existingChat) {
-                socket.emit('chat_history', existingChat.messages);
-            }
-        });
     });
 
-    // 2. Получение сообщения
+    // 2. ЗАПРОС СПИСКА ЧАТОВ (Для админки)
+    // Теперь это работает независимо и четко
+    socket.on('admin_get_all_chats', async () => {
+        const chats = await chatController.getAllActiveChats();
+        socket.emit('admin_chat_list', chats);
+    });
+
+    // 3. Админ заходит в конкретный чат
+    socket.on('admin_join_guest_chat', async (guestId) => {
+        socket.join(guestId); // Подписываемся на сообщения этого гостя
+        const existingChat = await chatController.getChatByGuestId(guestId);
+        if (existingChat) {
+            socket.emit('chat_history', existingChat.messages);
+        }
+    });
+
+    // 4. Получение и рассылка сообщений
     socket.on('send_message', async (data) => {
         const { guestId, text, sender } = data;
 
         const newMessage = {
             text: text,
             sender: sender || 'user',
-            timestamp: new Date()
+            timestamp: new Date(),
+            read: sender === 'admin' ? true : false
         };
 
         try {
-            // Сохраняем в базу и обновляем таймер (TTL)
             await chatController.saveMessage(guestId, newMessage);
-
-            // Отправляем обратно в комнату клиента (и тебе в админку)
+            
+            // Рассылаем сообщение всем в комнате guestId
             io.to(guestId).emit('receive_message', newMessage);
 
+            // Если написал юзер — обновляем список чатов у админа (чтобы счетчик тикнул)
             if (sender !== 'admin') {
-            const allChats = await chatController.getAllActiveChats();
-            // Кидаем всем (io.emit), чтобы у админа сработал слушатель
-            io.emit('admin_chat_list', allChats);
+                const allChats = await chatController.getAllActiveChats();
+                io.emit('admin_chat_list', allChats);
             }
         } catch (err) {
             console.error("Ошибка сохранения сообщения:", err);
+        }
+    });
+
+    // 5. Пометка как прочитано
+    socket.on('admin_mark_as_read', async (guestId) => { 
+        try {
+            await ChatSession.updateOne(
+                { guestId: guestId },
+                { $set: { "messages.$[msg].read": true } },
+                { 
+                    arrayFilters: [{ "msg.sender": "user", "msg.read": { $ne: true } }],
+                    multi: true 
+                }
+            );
+
+            // СРАЗУ после обновления базы рассылаем свежий список чатов
+            // Это уберет "воскресающие" цифры
+            const allChats = await chatController.getAllActiveChats();
+            io.emit('admin_chat_list', allChats);
+            
+        } catch (err) {
+            console.error("Ошибка при обновлении статуса прочитано:", err);
         }
     });
 });

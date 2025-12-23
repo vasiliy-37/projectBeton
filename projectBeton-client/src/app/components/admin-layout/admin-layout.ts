@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../auth';
+import { ChatService } from '../../services/chat';
 
 @Component({
   selector: 'app-admin-layout',
@@ -10,6 +11,7 @@ import { AuthService } from '../../auth';
   styleUrl: './admin-layout.less'
 })
 export class AdminLayout {
+  public chatService = inject(ChatService);
   private authService = inject(AuthService);
   private router = inject(Router); // Переводим на inject для единообразия
 

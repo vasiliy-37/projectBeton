@@ -1,4 +1,4 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 
 interface Message {
@@ -20,6 +20,11 @@ export class ChatService {
 
   // 2. Сигнал для сообщений (чтобы Angular сразу видел обновления)
   messages = signal<Message[]>([]);
+  activeChats = signal<any[]>([]);
+
+  totalUnread = computed(() => {
+    return this.activeChats().reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
+  });
 
   constructor() {
     // Сохраняем ID, чтобы чат не пропадал при перезагрузке
@@ -33,6 +38,8 @@ export class ChatService {
       this.messages.set(history);
     });
 
+    this.socket.emit('admin_get_all_chats');
+
     // Как только подключились — заходим в свою комнату
     this.socket.on('connect', () => {
       this.socket.emit('join_chat', this.guestId);
@@ -41,6 +48,11 @@ export class ChatService {
     // Слушаем входящие сообщения
     this.socket.on('receive_message', (msg: Message) => {
       this.messages.update(prev => [...prev, msg]);
+    });
+
+    this.socket.on('admin_chat_list', (chats: any[]) => {
+      console.log('Новые данные чатов:', chats);
+      this.activeChats.set(chats);
     });
   }
 
@@ -80,5 +92,9 @@ sendAdminMessage(data: any) {
     };
 
     this.socket.emit('send_message', data);
+  }
+  
+  async markAsRead(guestId: string) {
+    this.socket.emit('admin_mark_as_read', guestId);
   }
 }
