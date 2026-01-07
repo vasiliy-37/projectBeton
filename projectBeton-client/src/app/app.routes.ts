@@ -10,6 +10,7 @@ import { AdminLayout } from './components/admin-layout/admin-layout';
 import { LoginComponent } from './components/login/login';
 import { AuthGuard } from './auth-guard';
 import { AdminChatsComponent } from './components/admin-chats/admin-chats';
+import { AdminWorks } from './components/admin-works/admin-works';
 
 export const routes: Routes = [
     { path: '', component: Home, title: 'Главная' },
@@ -28,6 +29,7 @@ export const routes: Routes = [
             { path: 'service', component: AdminService, title: 'Админка-Услуги'}, 
             { path: 'contacts', component: AdminContacts, title: 'Админка' },
             { path: 'chats', component: AdminChatsComponent, title: 'Чаты' },
+            { path: 'fotoedit', component: AdminWorks, title: 'Редактор Фото' },
             { path: '', redirectTo: 'contacts', pathMatch: 'full' }
         ]
     },

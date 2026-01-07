@@ -26,6 +26,7 @@ const DB_URL = 'mongodb://localhost:27017/projectBeton';
 const User = require('./models/User.js');
 const JWT_SECRET = '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8258d5f39aee4cfb35dc007c77255730306c8ae0bdb049d6dd80246a06e986566b24a';
 const ChatSession = require('./models/ChatSession.js');
+const Work = require('./models/Work');
 
 const io = new Server(server, {
     cors: {
@@ -64,7 +65,7 @@ const corsOptions = {
     credentials: true // <-- КЛЮЧЕВОЕ ЗНАЧЕНИЕ ДЛЯ КУК!
 };
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
 
@@ -129,7 +130,7 @@ io.on('connection', (socket) => {
 
         try {
             await chatController.saveMessage(guestId, newMessage);
-            
+
             // Рассылаем сообщение всем в комнате guestId
             io.to(guestId).emit('receive_message', newMessage);
 
@@ -144,14 +145,14 @@ io.on('connection', (socket) => {
     });
 
     // 5. Пометка как прочитано
-    socket.on('admin_mark_as_read', async (guestId) => { 
+    socket.on('admin_mark_as_read', async (guestId) => {
         try {
             await ChatSession.updateOne(
                 { guestId: guestId },
                 { $set: { "messages.$[msg].read": true } },
-                { 
+                {
                     arrayFilters: [{ "msg.sender": "user", "msg.read": { $ne: true } }],
-                    multi: true 
+                    multi: true
                 }
             );
 
@@ -159,7 +160,7 @@ io.on('connection', (socket) => {
             // Это уберет "воскресающие" цифры
             const allChats = await chatController.getAllActiveChats();
             io.emit('admin_chat_list', allChats);
-            
+
         } catch (err) {
             console.error("Ошибка при обновлении статуса прочитано:", err);
         }
@@ -481,6 +482,33 @@ app.post('/api/request-call', async (req, res) => {
         // Ответ с ошибкой для Angular
         res.status(500).send({ success: false, message: 'Ошибка сервера при отправке заявки.' });
     }
+});
+
+app.get('/api/works', (req, res) => {
+    Work.find().sort({ createdAt: -1 }) // Сначала новые
+        .then(works => res.json(works))
+        .catch(err => res.status(500).json({ error: 'Ошибка загрузки галереи' }));
+});
+
+// 2. Добавить новую работу (защищено токеном)
+app.post('/api/works', authenticateToken, (req, res) => {
+    const { title, imageData } = req.body;
+
+    if (!title || !imageData) {
+        return res.status(400).json({ error: 'Название и изображение обязательны' });
+    }
+
+    const newWork = new Work({ title, imageData });
+    newWork.save()
+        .then(doc => res.status(201).json(doc))
+        .catch(err => res.status(500).json({ error: 'Ошибка сохранения в базу' }));
+});
+
+// 3. Удалить работу (защищено токеном)
+app.delete('/api/works/:id', authenticateToken, (req, res) => {
+    Work.findByIdAndDelete(req.params.id)
+        .then(() => res.status(204).send())
+        .catch(err => res.status(500).json({ error: 'Ошибка удаления' }));
 });
 
 

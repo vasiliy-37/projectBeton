@@ -1,0 +1,27 @@
+<section class="portfolio-section">
+    <div class="container">
+        <h2>Наши работы</h2>
+
+        @if (workService.works().length === 0) {
+        <p class="loading">Загрузка галереи...</p>
+        } @else {
+        <swiper-container #swiperRef init="false" slides-per-view="1" space-between="20" navigation="true"
+            pagination="false" loop="true" [breakpoints]="{
+          '640': { 'slidesPerView': 2 },
+          '1024': { 'slidesPerView': 3 },
+          '1280': { 'slidesPerView': 4 }
+        }">
+            @for (work of randomWorks(); track work._id) {
+            <swiper-slide>
+                <div class="work-card">
+                    <img [src]="work.imageData" [alt]="work.title" loading="lazy">
+                    <div class="work-info">
+                        <h3>{{ work.title }}</h3>
+                    </div>
+                </div>
+            </swiper-slide>
+            }
+        </swiper-container>
+        }
+    </div>
+</section>

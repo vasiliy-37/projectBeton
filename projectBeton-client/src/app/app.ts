@@ -8,10 +8,13 @@ import { FormInvitation } from './components/form-invitation/form-invitation';
 import { Header } from './components/header/header';
 import { Footer } from './components/footer/footer';
 import { ChatWidgetComponent } from './components/chat-widget/chat-widget';
+import { Portfolio } from './components/portfolio/portfolio';
+import { register } from 'swiper/element/bundle';
+register();
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, Invitation, NavigationBar, Calculator, ContactButton, FormInvitation, Header, Footer, ChatWidgetComponent],
+  imports: [RouterOutlet, RouterLink, Invitation, NavigationBar, Calculator, ContactButton, FormInvitation, Header, Footer, ChatWidgetComponent, Portfolio],
   templateUrl: './app.html',
   styleUrl: './app.less'
 })

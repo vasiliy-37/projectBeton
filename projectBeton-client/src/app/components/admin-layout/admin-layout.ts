@@ -5,7 +5,7 @@ import { ChatService } from '../../services/chat';
 
 @Component({
   selector: 'app-admin-layout',
-  standalone: true, // Добавляем, так как используем современные импорты
+  standalone: true, 
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.less'
