@@ -1,0 +1,109 @@
+/* ---------------------------------------------------- */
+/* 1. ОБЩИЕ СТИЛИ ТАБЛИЦЫ: table И .table */
+/* ---------------------------------------------------- */
+/* Применяем к обеим таблицам через запятую */
+table, .table {
+    border-collapse: collapse; 
+    border-spacing: 0;
+    width: 100%;
+    
+    background-color: #f8f8f8; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+    border-radius: 8px; 
+    overflow: hidden; 
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 20px 0; 
+}
+
+/* ---------------------------------------------------- */
+/* 2. ЗАГОЛОВОК ТАБЛИЦЫ (thead) */
+/* ---------------------------------------------------- */
+table thead, .table thead {
+    background-color: #333; 
+    color: #ffffff; 
+}
+
+table thead th, .table thead th {
+    padding: 15px 10px;
+    text-align: left;
+    border: none;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+/* ---------------------------------------------------- */
+/* 3. СТРОКА ТИПА ПРОДУКТА (Разделитель - ТОЛЬКО ДЛЯ ПРАЙС-ЛИСТА) */
+/* ---------------------------------------------------- */
+/* Этот селектор стилизует td[colspan="2"] только там, где он есть */
+tbody tr td[colspan="2"] {
+    background-color: #444; 
+    color: #ffffff; 
+    font-size: 1.1em;
+    font-weight: 700;
+    padding: 12px 10px;
+    text-align: left;
+    border-top: 2px solid #ff8c00; 
+    border-bottom: 1px solid #ff8c00; 
+    letter-spacing: 1px;
+}
+
+/* ---------------------------------------------------- */
+/* 4. ОСНОВНОЕ ТЕЛО ТАБЛИЦЫ (Строки с данными) */
+/* ---------------------------------------------------- */
+table tbody tr, .table tbody tr {
+    border-bottom: 1px solid #e0e0e0; 
+    transition: background-color 0.2s;
+}
+
+table tbody tr:last-child, .table tbody tr:last-child {
+    border-bottom: none; 
+}
+
+table tbody td, .table tbody td {
+    padding: 12px 10px;
+    border: none;
+    font-size: 1em;
+}
+
+/* Выделение четных строк (Зебра) */
+table tbody tr:nth-child(even), .table tbody tr:nth-child(even) {
+    background-color: #f0f0f0; 
+}
+
+/* Эффект при наведении */
+table tbody tr:hover, .table tbody tr:hover {
+    background-color: #e5e5e5;
+}
+
+/* Стиль для колонки с ценой (вторая колонка) */
+table tbody tr td:last-child, .table tbody tr td:last-child {
+    font-weight: bold;
+    color: #000000; 
+    text-align: right; 
+    padding-right: 20px; 
+}
+
+/* ---------------------------------------------------- */
+/* 5. АДАПТИВНОСТЬ (МОБИЛЬНЫЕ УСТРОЙСТВА) */
+/* ---------------------------------------------------- */
+@media (max-width: 600px) {
+    table, .table {
+        margin: 10px 0;
+    }
+    
+    table thead th, table tbody td, 
+    .table thead th, .table tbody td {
+        padding: 10px 8px;
+    }
+    
+    /* Специфический стиль только для разделителя в первой таблице */
+    tbody tr td[colspan="2"] {
+        font-size: 1em;
+        padding: 10px 8px;
+    }
+    
+    table tbody tr td:last-child, .table tbody tr td:last-child {
+        padding-right: 10px;
+    }
+}

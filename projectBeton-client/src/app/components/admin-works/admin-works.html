@@ -1,0 +1,30 @@
+<div class="admin-card">
+  <h2>Добавить новую работу</h2>
+  
+  <div class="form-group">
+    <input type="text" #titleInput placeholder="Название объекта (напр. ЖК Скандинавия)">
+    <input type="file" (change)="onFileSelected($event)" accept="image/*">
+  </div>
+
+  @if (previewImage()) {
+    <div class="preview-box">
+      <img [src]="previewImage()" alt="Превью">
+      <button class="btn-save" (click)="save(titleInput)">💾 Опубликовать на сайт</button>
+    </div>
+  }
+
+  <hr>
+
+  <h2>Список работ в базе</h2>
+  <div class="works-grid">
+    @for (work of workService.works(); track work._id) {
+      <div class="work-item">
+        <img [src]="work.imageData">
+        <div class="work-info">
+          <span>{{ work.title }}</span>
+          <button (click)="workService.delete(work._id!)">🗑 Удалить</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

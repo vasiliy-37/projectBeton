@@ -1,0 +1,25 @@
+<header>
+    <div class="logo">
+        <div class="logo-main">БЕТОН</div>
+        <div class="logo-subtitle">с доставкой в Иваново</div>
+    </div>
+
+    <div class="contact-info-container">
+    <div class="contact-info">
+       <app-phone-display></app-phone-display>
+    </div>
+
+    <div class="navigation-mobile-wrapper">
+        <app-navigation-bar></app-navigation-bar>
+        </div>
+    </div>
+    
+    <div class="actions">
+        <!-- Кнопка перехода к калькулятору на главной странице -->
+        <a routerLink="/" class="btn-calculator" routerLinkActive="active-btn"
+            [routerLinkActiveOptions]="{exact: true}">
+            Сделать расчёт
+            <span></span>
+        </a>
+    </div>
+</header>

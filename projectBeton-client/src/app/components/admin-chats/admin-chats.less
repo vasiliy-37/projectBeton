@@ -1,0 +1,190 @@
+.admin-chat-container {
+    display: flex;
+    height: calc(100vh - 160px); // Вычитаем высоту шапки и отступы
+    gap: 20px;
+    font-family: 'Inter', Arial, sans-serif;
+
+    // Левая колонка со списком чатов
+    .chats-list {
+        flex: 0 0 320px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        h3 {
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 15px;
+            font-size: 1.1em;
+            color: #0d47a1;
+            border-bottom: 2px solid #0d47a1;
+        }
+
+        .list-wrapper {
+            flex: 1;
+            overflow-y: auto;
+
+            .chat-item {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                cursor: pointer;
+                transition: background 0.2s;
+
+                &:hover {
+                    background-color: #f9f9f9;
+                }
+
+                &.active {
+                    background-color: #e3f2fd;
+                    border-left: 4px solid #1a73e8;
+                }
+
+                .guest-info {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center; // Центрируем по вертикали
+                    margin-bottom: 5px;
+                    gap: 8px; // Небольшой отступ между элементами
+
+                    .guest-name {
+                        font-weight: bold;
+                        color: #333;
+                        flex: 1; // Позволяет имени занимать максимум места
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    // НАШ НОВЫЙ БЭЙДЖ
+                    .unread-badge {
+                        background-color: #f44336; // Сочный красный
+                        color: white;
+                        font-size: 0.75em;
+                        font-weight: bold;
+                        min-width: 18px;
+                        height: 18px;
+                        border-radius: 50%; // Делаем круглым
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 2px;
+                        box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
+                        flex-shrink: 0; // Чтобы кружок не сплющивался
+                    }
+
+                    .last-time {
+                        font-size: 0.85em;
+                        color: #9e9e9e;
+                        flex-shrink: 0; // Время всегда должно быть видно
+                    }
+                }
+
+                .last-msg-preview {
+                    font-size: 0.9em;
+                    color: #666;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
+        }
+    }
+
+    // Правая колонка: Окно переписки
+    .chat-area {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+
+            .messages-history {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+                background-color: #fcfcfc;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+
+                .msg-bubble {
+                    max-width: 70%;
+                    padding: 10px 15px;
+                    border-radius: 8px;
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+
+                    .text {
+                        font-size: 0.95em;
+                        line-height: 1.4;
+                    }
+
+                    .time {
+                        font-size: 0.7em;
+                        margin-top: 4px;
+                        opacity: 0.7;
+                        align-self: flex-end;
+                    }
+
+                    &.user {
+                        align-self: flex-start;
+                        background-color: #eee;
+                        color: #333;
+                        border-bottom-left-radius: 0;
+                    }
+
+                    &.admin {
+                        align-self: flex-end;
+                        background-color: #2196F3;
+                        color: white;
+                        border-bottom-right-radius: 0;
+                    }
+                }
+            }
+
+            .admin-input-zone {
+                padding: 20px;
+                border-top: 1px solid #ddd;
+                display: flex;
+                gap: 15px;
+
+                input {
+                    flex: 1;
+                    padding: 12px;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    outline: none;
+
+                    &:focus {
+                        border-color: #2196F3;
+                    }
+                }
+
+                button {
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 0 25px;
+                    border: none;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: #45a049;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,42 @@
+<h2>Прайс-лист</h2>
+
+@if (isLoading()) {
+  <div>Загрузка данных...</div>
+}
+
+@if (error()) {
+  <div style="color: red;">{{ error() }}</div>
+}
+
+@if (!isLoading() && brands().length > 0) {
+  <table border="1" cellpadding="10" width="100%">
+    <thead>
+      <tr>
+        <th>Марка</th>
+        <th>Цена (руб.)</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (brandItem of brands(); track brandItem._id; let i = $index) {
+        
+        @if (i === 0 || brands()[i-1].category !== brandItem.category) {
+          <tr>
+            <td colspan="2" style="background-color: #f2f2f2; font-weight: bold; padding: 10px;">
+                {{ brandItem.category }}
+            </td>
+          </tr>
+        }
+
+        <tr>
+          <td>{{ brandItem.brand }}</td>
+          <td>{{ brandItem.price }} руб.</td>
+        </tr>
+
+      } @empty {
+        <tr>
+          <td colspan="2">Данных пока нет.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

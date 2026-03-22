@@ -1,0 +1,47 @@
+<div class="admin-chat-container">
+  <aside class="chats-list">
+    <h3>Активные сессии (1ч)</h3>
+    <div class="list-wrapper">
+      @for (chat of activeChats(); track chat.guestId) {
+      <div class="chat-item" [class.active]="selectedChatId() === chat.guestId" (click)="selectChat(chat.guestId)">
+        <div class="guest-info">
+          <span class="guest-name">Гость: {{ chat.guestId.substring(0, 8) }}...</span>
+          @if (chat.unreadCount > 0) {
+          <span class="unread-badge">{{ chat.unreadCount }}</span>
+          }
+          <span class="last-time">{{ chat.lastActivity | date:'HH:mm' }}</span>
+        </div>
+        <div class="last-msg-preview">
+          {{ chat.messages[chat.messages.length - 1]?.text || 'Нет сообщений' }}
+        </div>
+      </div>
+      } @empty {
+      <p class="empty-msg">Пока никто не пишет...</p>
+      }
+    </div>
+  </aside>
+
+  <section class="chat-area">
+    @if (selectedChatId()) {
+    <div class="chat-main">
+      <div class="messages-history">
+        @for (msg of chatService.messages(); track $index) {
+        <div [className]="'msg-bubble ' + msg.sender">
+          <span class="text">{{ msg.text }}</span>
+          <span class="time">{{ msg.timestamp | date:'HH:mm' }}</span>
+        </div>
+        }
+      </div>
+
+      <div class="admin-input-zone">
+        <input [(ngModel)]="adminMessage" (keyup.enter)="sendResponse()" placeholder="Напишите ответ клиенту...">
+        <button (click)="sendResponse()">Отправить</button>
+      </div>
+    </div>
+    } @else {
+    <div class="no-selection">
+      <p>Выберите чат из списка слева, чтобы начать общение</p>
+    </div>
+    }
+  </section>
+</div>

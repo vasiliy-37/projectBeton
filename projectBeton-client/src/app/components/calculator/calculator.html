@@ -1,0 +1,37 @@
+<div class="calculator-container" [formGroup]="form">
+  <h2>Заказ бетона онлайн</h2>
+
+  @if (isLoading()) {
+    <p>Сверяем цены с базой...</p>
+  } @else {
+    <div class="grade-selection">
+      <label>Что заказываем?</label>
+      <select formControlName="category" (change)="syncSignals()">
+        @for (cat of uniqueCategories(); track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="grade-selection">
+      <label>Выберите марку:</label>
+      <select formControlName="grade" (change)="syncSignals()">
+        @for (item of filteredBrands(); track item._id) {
+          <option [value]="item.brand">{{ item.brand }} — {{ item.price }} руб/м³</option>
+        }
+      </select>
+    </div>
+
+    <div class="manual-input">
+      <label>Необходимый объем (м³):</label>
+      <input type="number" formControlName="volume" (input)="syncSignals()" placeholder="Например: 5">
+    </div>
+
+    <div class="result-display">
+      <div class="res-item">К заказу: <strong>{{ volumeValue() }} м³</strong></div>
+      <div class="res-item total">Сумма: <strong>{{ totalPrice() | number:'1.0-0' }} руб.</strong></div>
+      
+      <app-order-button (click)="onOpenModalClick()"></app-order-button>
+    </div>
+  }
+</div>

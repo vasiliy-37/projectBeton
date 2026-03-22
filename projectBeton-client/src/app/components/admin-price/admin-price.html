@@ -1,0 +1,65 @@
+<div class="admin-price-container">
+  <h1>Управление прайс-листом (Марки и Цены)</h1>
+
+  <div class="card">
+    <h2>➕ Добавить новую позицию</h2>
+    <div class="form-grid">
+      <input type="text" [(ngModel)]="newBrand().category" placeholder="Категория (Бетон, Песок...)" [disabled]="isCreating()">
+      <input type="text" [(ngModel)]="newBrand().brand" placeholder="Марка (M300, ПГС...)" [disabled]="isCreating()">
+      <input type="number" [(ngModel)]="newBrand().price" placeholder="Цена" [disabled]="isCreating()">
+      
+      <button (click)="createBrand()" [disabled]="isCreating() || !newBrand().brand || !newBrand().category" class="create-button">
+        {{ isCreating() ? '...' : 'Добавить' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Текущие марки и цены</h2>
+
+    @if (isLoading()) {
+      <div class="loading-message">Загрузка данных...</div>
+    }
+
+    <table class="brands-table">
+      <thead>
+        <tr>
+          <th>Категория</th>
+          <th>Марка</th>
+          <th>Цена (руб)</th>
+          <th style="width: 150px;">Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of brands(); track item._id; let i = $index) {
+          
+          @if (i === 0 || brands()[i-1].category !== item.category) {
+            <tr class="category-header">
+              <td colspan="4">{{ item.category }}</td>
+            </tr>
+          }
+
+          <tr [class.editing]="item.isEditing">
+            @if (!item.isEditing) {
+              <td>{{ item.category }}</td>
+              <td>{{ item.brand }}</td>
+              <td>{{ item.price }} руб.</td>
+              <td class="action-buttons">
+                <button (click)="item.isEditing = true" class="edit-btn" title="Изменить">✍️</button>
+                <button (click)="deleteBrand(item._id)" class="delete-btn" title="Удалить">🗑️</button>
+              </td>
+            } @else {
+              <td><input [(ngModel)]="item.category" class="edit-input"></td>
+              <td><input [(ngModel)]="item.brand" class="edit-input"></td>
+              <td><input type="number" [(ngModel)]="item.price" class="edit-input"></td>
+              <td class="action-buttons">
+                <button (click)="saveUpdate(item)" class="save-btn">✅</button>
+                <button (click)="item.isEditing = false" class="cancel-btn">❌</button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

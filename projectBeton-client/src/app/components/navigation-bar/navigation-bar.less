@@ -1,0 +1,125 @@
+/* --- Контейнер навигации (современный серый фон) --- */
+nav {
+    background-color: rgba(0, 0, 0, 0); /* Полупрозрачный цвет фона */
+    padding: 0px; 
+    box-shadow: none; /* Мягкая, ненавязчивая тень */
+    border-bottom: none; /* Тонкая линия в цвет акцента */
+    position: sticky; /* Позиционируем на месте при прокрутке */ 
+    // top: 70px; /* Отступ от верхнего края, чтобы быть под хедером */
+    z-index: 999;
+    border-radius: 0; /* Убираем скругление */
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+// li {
+//     // margin: 0 15px; 
+// }
+
+/* --- Стили ссылок (Четкие, как кнопки) --- */
+a {
+    color: #000000; 
+    text-decoration: none;
+    padding: 10px 20px; /* Размер кнопки */
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s ease; /* Плавные переходы */
+    border-radius: 6px; /* Легкое скругление углов */
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    // font-weight: 600;
+}
+
+/* Эффект при наведении (Легкий фон и изменение цвета) */
+a:hover {
+    color: #e07967; 
+    // background-color: rgba(0, 191, 255, 0.103); 
+}
+
+/* --- Стиль для активной (текущей) страницы --- */
+a.active-link {
+    color: #e07967; /* Белый текст */
+    background-color: #3d87b800; /* Яркий голубой фон */
+    font-weight: 600;
+    // box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3); /* Тень для активного элемента */
+    transform: translateY(-2px); /* Активная ссылка немного приподнята */
+}
+
+.menu-toggle {
+    display: none;
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    
+     .menu-toggle {
+    display: block; 
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #333; /* Цвет иконки */
+  }
+
+  /* Скрываем обычное меню на мобильных по умолчанию */
+  .main-nav {
+    /* Позиционируем меню справа за пределами экрана */
+    position: fixed; /* Используем fixed, чтобы оно не прокручивалось вместе с контентом */
+    top: 0;
+    right: 0;
+    width: 300px; /* Заданная вами ширина */
+    height: 100vh; /* Занимает всю высоту экрана */
+    background-color: #ebebeb; 
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    padding: 1rem;
+    overflow-y: auto; /* Прокрутка, если контента много */
+
+    /* --- Магия выезжания: --- */
+    /* Скрываем меню полностью за пределами видимой области */
+    transform: translateX(100%); 
+    /* Добавляем плавный переход для анимации */
+    transition: transform 0.3s ease-in-out; 
+  }
+
+  /* Класс, который добавляется при открытии (ваша isMenuOpen переменная в Angular) */
+  .main-nav.is-open {
+    /* Возвращаем меню на экран (сдвигаем его на 0 по оси X) */
+    transform: translateX(0); 
+    /* Убедитесь, что display: block; или display: flex; установлен */
+    display: block; 
+  }
+
+  .main-nav ul {
+    flex-direction: column; /* Пункты меню выстраиваем вертикально */
+    // gap: 0;
+    width: 100%;
+    // list-style: none;
+    // padding: 0;
+    // margin: 0;
+}
+
+  .main-nav li a {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+  }
+}

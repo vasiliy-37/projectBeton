@@ -1,0 +1,73 @@
+.invitation-banner {
+  width: 100%; /* Занимает всю ширину */
+  height: 35px; /* Высота приглашения */
+  background: linear-gradient(to bottom, #555555, #000000); /* Полупрозрачный цвет фона */
+  display: flex; /* Центрирование содержимого */
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  margin-bottom: 10px; /* Без внешних отступов */
+  font-family: 'Montserrat', sans-serif;
+  // position: fixed; /* Закрепляем на месте при прокрутке */
+  // top: 0;          /* В самом верху viewport */
+  // left: 0;         /* По левому краю viewport */
+  z-index: 10001;  /* Очень высокий z-index, чтобы быть поверх всех */
+  border-radius: 0; /* Без скругления */
+  box-shadow: none; /* Без тени */
+  transition: all 0.3s ease;
+}
+
+/* Эффект при наведении — чуть более выразительный */
+.invitation-banner:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Стиль для текста */
+.invitation-banner p {
+  font-size: 15px; /* чуть меньше, чтобы укладываться в меньшую высоту */
+  color: #ffffff; /* тёмный, чтобы хорошо читалось */
+  margin: 0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: left;
+}
+
+.close-button {
+  margin-right: 15%;
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #c2c1c1;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.close-button:hover {
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .invitation-banner {
+    height: auto; /* Автоматическая высота, чтобы текст мог переноситься */
+    padding: 10px 35px;
+    // flex-wrap: wrap; /* Позволяем элементам переноситься */
+    // justify-content: space-between;
+  }
+
+  .invitation-banner p {
+    font-size: 12px; /* Уменьшаем размер шрифта, чтобы поместилось на узком экране */
+    max-width: calc(100% - 30px);
+    // margin-right: 10px;
+  }
+
+  /* Компонент кнопки контакта тоже может потребовать адаптивных стилей внутри себя */
+  app-contact-button {
+     font-size: 12px; 
+    padding: 6px 10px;
+  }
+}

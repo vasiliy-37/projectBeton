@@ -1,0 +1,17 @@
+<div>
+    <form #phoneForm="ngForm" (ngSubmit)="setPhoneNumber()">
+      <label for="phoneNumber">Phone Number:</label>
+      <input
+        type="text"
+        id="phoneNumber"
+        name="phoneNumber"
+        [(ngModel)]="phoneNumber"
+        required
+        #phoneInput="ngModel"
+      />
+      <div *ngIf="phoneInput.invalid && phoneInput.touched" class="error">
+        Please enter a valid 10-digit phone number.
+      </div>
+      <button type="submit" [disabled]="phoneForm.invalid">Update</button>
+    </form>
+  </div>

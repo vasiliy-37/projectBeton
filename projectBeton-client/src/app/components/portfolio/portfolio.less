@@ -1,0 +1,88 @@
+.portfolio-section {
+    padding: 60px 0;
+    background-color: #f9f9f9;
+
+    h2 {
+        text-align: center;
+        margin-bottom: 40px;
+        font-size: 2.2rem;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    swiper-container {
+        width: 100%;
+        height: 380px;
+        
+        // Переменные Swiper для цвета и размера иконок
+        --swiper-navigation-size: 16px;
+        --swiper-navigation-color: #333;
+
+        // Стилизация кнопок (кружки)
+        &::part(button-prev),
+        &::part(button-next) {
+            background: rgba(255, 255, 255, 0.9); // Белый фон с легкой прозрачностью
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid #eee;
+            // Центрируем
+            top: 150px;
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
+            
+            &:hover {
+                background: #fff;
+                transform: translateY(-50%) scale(1.1);
+                box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            }
+        }
+
+        // Позиционируем их аккуратно по краям ВНУТРИ фото
+        &::part(button-prev) { left: 8px; }
+        &::part(button-next) { right: 8px; }
+    }
+
+    .work-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        height: 330px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+        img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+        }
+
+        .work-info {
+            padding: 10px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            h3 {
+                font-size: 0.95rem;
+                margin: 0;
+                text-align: center;
+                color: #333;
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    swiper-container {
+        &::part(button-prev),
+        &::part(button-next) {
+            display: none !important;
+        }
+    }
+}

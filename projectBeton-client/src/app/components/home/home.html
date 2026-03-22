@@ -1,0 +1,26 @@
+<div class="home-layout-wrapper">
+  @if (!showModal()) {
+    <div class="text-content-area">
+      <div class="text-background">
+        <h1>Купить бетон в Иваново напрямую с завода</h1>
+        <p>
+          Мы гарантируем оперативную поставку высококачественного бетона любых марок прямо на ваш
+          объект в Иваново и области. Собственный автопарк миксеров. Точный объем. Никаких
+          посредников и переплат.
+        </p>
+      </div>
+      <app-cards-about-us [windowsData]="appWindowsData"></app-cards-about-us>
+    </div>
+  } @else {
+    <app-order-modal
+      (closeModal)="closeModal()"
+      [volume]="orderData()?.volume"
+      [grade]="orderData()?.grade"
+    >
+    </app-order-modal>
+  }
+
+  <app-calculator (orderRequested)="handleOrderRequest($event)"></app-calculator>
+  
+</div>
+<app-portfolio></app-portfolio>
