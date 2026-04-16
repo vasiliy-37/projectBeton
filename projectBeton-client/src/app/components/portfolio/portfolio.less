@@ -1,78 +1,75 @@
 .portfolio-section {
-    padding: 60px 0;
-    background-color: #f9f9f9;
+    padding: 72px 0;
+    background-color: #f0f0f6;
 
     h2 {
-        text-align: center;
-        margin-bottom: 40px;
-        font-size: 2.2rem;
+        margin: 0 0 28px;
+        font-size: clamp(1.9rem, 4vw, 3rem);
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
     }
 
     .container {
-        max-width: 1200px;
+        max-width: 1440px;
         margin: 0 auto;
-        padding: 0 20px;
+        padding: 0 24px;
     }
 
     swiper-container {
         width: 100%;
-        height: 380px;
-        
-        // Переменные Swiper для цвета и размера иконок
+        height: 420px;
         --swiper-navigation-size: 16px;
-        --swiper-navigation-color: #333;
+        --swiper-navigation-color: #2d2f33;
 
-        // Стилизация кнопок (кружки)
         &::part(button-prev),
         &::part(button-next) {
-            background: rgba(255, 255, 255, 0.9); // Белый фон с легкой прозрачностью
+            background: rgba(255, 255, 255, 0.95);
             width: 34px;
             height: 34px;
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            border: 1px solid #eee;
-            // Центрируем
-            top: 150px;
+            border-radius: 2px;
+            box-shadow: 0 20px 40px rgba(45, 47, 51, 0.06);
+            border: 1px solid rgba(172, 173, 177, 0.15);
+            top: 162px;
             transform: translateY(-50%);
             transition: all 0.3s ease;
             
             &:hover {
-                background: #fff;
-                transform: translateY(-50%) scale(1.1);
-                box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+                background: #bb0100;
+                color: #ffefed;
             }
         }
 
-        // Позиционируем их аккуратно по краям ВНУТРИ фото
         &::part(button-prev) { left: 8px; }
         &::part(button-next) { right: 8px; }
     }
 
     .work-card {
         background: #fff;
-        border-radius: 12px;
+        border-radius: 2px;
         overflow: hidden;
-        height: 330px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        height: 368px;
+        box-shadow: 0 20px 40px rgba(45, 47, 51, 0.06);
+        border: 1px solid rgba(172, 173, 177, 0.15);
 
         img {
             width: 100%;
-            height: 260px;
+            height: 300px;
             object-fit: cover;
         }
 
         .work-info {
-            padding: 10px;
-            height: 70px;
+            padding: 12px;
+            height: 68px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
 
             h3 {
-                font-size: 0.95rem;
+                font-size: 0.82rem;
                 margin: 0;
-                text-align: center;
-                color: #333;
+                color: #2d2f33;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
             }
         }
     }

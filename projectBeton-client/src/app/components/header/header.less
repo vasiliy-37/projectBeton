@@ -1,231 +1,147 @@
 header {
-    background-color: white; /* Полупрозрачный цвет фона */
-    position: sticky; /* Или absolute, в зависимости от желаемого поведения при прокрутке */
-    // top: 55px; /* Отступ от верхнего края, чтобы быть под хедером */
-    z-index: 1000; /* Чтобы был поверх всего */
-    margin: 0; /* Убираем внешние отступы */
-    // border-radius: 10px; /* Убираем скругление */
-    /* Цвет фона навбара */
+    position: static;
     display: flex;
-    justify-content: space-between;
-    /* Распределяем элементы по краям */
     align-items: center;
-    /* Выравниваем по центру вертикали */
-    padding: 10px;
-    gap: 10px;
-    flex-wrap: wrap;
-    /* Отступы по бокам */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-//   margin-top: 10px;  
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 24px;
+    margin-top: 0;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 40px rgba(45, 47, 51, 0.06);
+    border: 1px solid rgba(172, 173, 177, 0.15);
+    border-radius: 4px;
 }
 
 .contact-info-container {
-display: flex;
-align-items: center;
-justify-content: space-evenly; 
-flex-grow: 1;
-gap: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    gap: 24px;
 }
 
-/* Стилизация текстового логотипа */
 .logo {
     display: flex;
     flex-direction: column;
-    /* Выравниваем текст по левому краю (если нужно) */
     align-items: flex-start;
 }
 
-/* Стиль для первой, крупной строки (БЕТОН) */
+.logo-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1;
+}
+
+.logo-mixer {
+    display: block;
+    width: 116px;
+    height: 56px;
+    object-fit: cover;
+    object-position: center;
+    flex-shrink: 0;
+}
+
 .logo-main {
-    color: #000000;
-    font-size: 38px;
-    /* Крупный размер */
+    margin: 0;
+    display: inline-flex;
+    align-items: baseline;
+    line-height: 1;
+    font-size: 1.72rem;
     font-weight: 800;
-    /* Очень жирный */
     text-transform: uppercase;
-    line-height: 1.1;
-    /* Уменьшаем межстрочный интервал */
-    font-family: 'Oswald', sans-serif;
+    letter-spacing: -0.04em;
 }
 
-/* Стиль для второй, мелкой строки (с доставкой в Иваново) */
-.logo-subtitle {
+.logo-char {
+    display: inline-block;
+}
+
+.logo-char--accent {
+    color: #bb0100;
+}
+
+.logo-char--dark {
     color: #000000;
-    /* Нейтральный светлый серый */
-    font-size: 20px;
-    /* Мелкий размер */
-    font-weight: 500;
-    margin-top: 1px;
-    /* Небольшой отступ сверху */
-    letter-spacing: 0.5px;
-    font-family: 'Oswald', sans-serif;
 }
 
-/* Стилизация номера телефона */
-// .phone-number {
-//     padding: 10px;
-//     color: #ec7373;
-//     text-decoration: none;
-//     font-size: 32px;
-//     transition: color 0.3s ease;
-//     font-family: 'Oswald', sans-serif;
-//      text-decoration: none;
-//      border-style: solid;
-//      border-width: 2px;
-//      border-color: #ec7373;
-// }
-
-// .phone-number:hover {
-//   text-decoration: underline;
-//   text-decoration-color: #ec7373;
-// }
-
-// /* Стилизация кнопки "Перейти к калькулятору" */
-// // .actions {
-// //     position: relative;
-// //     display: flex;
-// //     align-items: center;
-// //     justify-content: center;
-// // }
+.logo-subtitle {
+    color: #5a5b60;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
 
 .btn-calculator {
-    /* Базовые размеры и вид */
-    /* Увеличил высоту и добавил padding, чтобы текст центрировался */
-    height: auto; 
-    padding: 10px 15px; 
-    width: auto; /* Ширина по контенту */
-    border: none;
-    outline: none;
-    color: #fff;
-    cursor: pointer;
-    position: relative;
-    z-index: 0;
-    margin-left: 25px;
-    overflow: hidden; /* Скрывает блик за пределами кнопки */
-    border-radius: 3px;
-    text-decoration: none; /* Это ссылка, убираем подчеркивание */
-    display: inline-block; /* Ссылки должны быть блочными/inline-block для размеров */
-    box-sizing: border-box; /* Учитываем padding в размере */
-    background-color: #ec7373;
-    transition: background-color 0.4s;
+    display: inline-block;
+    padding: 12px 18px;
+    background: #bb0100;
+    color: #ffefed;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    font-size: 0.66rem;
+    font-weight: 700;
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
 }
 
 .btn-calculator:hover {
-  background-color: #b45757;
+    background: #a40100;
 }
 
-.btn-calculator::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  background: linear-gradient(to right, transparent, #ffffff);
-  transform: skewX(-10deg) translateX(-120%);
-  opacity: 0.5;
-  animation: repeats 4s infinite linear; 
-}
+@media (max-width: 1024px) {
+    header {
+        flex-wrap: wrap;
+    }
 
-@keyframes repeats {
-  0% {
-    transform: skewX(-10deg) translateX(-120%);
-  }
-
-  35% {
-    transform: skewX(-10deg) translateX(120%);
-  }
-
-  100% {
-    transform: skewX(-10deg) translateX(120%);
-  }
+    .actions {
+        margin-left: auto;
+    }
 }
 
 @media (max-width: 768px) {
+    header {
+        margin-top: 0;
+        padding: 12px;
+        border-radius: 0;
+    }
 
-  header {
-    /* Перестраиваем элементы в вертикальный стек на мобильных */
-    flex-direction: column; 
-    flex-wrap: wrap;
-    align-items: flex-start; /* Выравниваем все по левому краю */
-    padding: 15px 20px; /* Отступы для мобильных */
-    gap: 10px; /* Добавляем отступы между элементами хедера */
-  }
+    .contact-info-container {
+        width: 100%;
+    }
 
-.contact-info-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  // gap: 120px; /* Отступ между номером и кнопкой навигации */
-  flex-grow: 1; /* Позволяет ему растягиваться, если header - flex */
-  width: 100%;
-  // order: 1;
-}
-  
-  /* Убираем анимацию на мобильных для производительности и простоты */
-  .btn-calculator::before {
-    display: none; 
-  }
+    .logo-main {
+        font-size: 1.32rem;
+        line-height: 1;
+    }
 
-  @keyframes repeats {
-    0% { transform: none; }
-    100% { transform: none; }
-  }
+    .logo-mixer {
+        width: 46px;
+        height: 46px;
+    }
 
-  .logo-main {
-    font-size: 28px; /* Еще меньше размер логотипа */
-  }
+    .logo-subtitle {
+        font-size: 0.66rem;
+    }
 
-  .logo-subtitle {
-    font-size: 16px;
-  }
+    .actions {
+        width: 100%;
+    }
 
-  /* Номер телефона делаем менее акцентным, убираем рамку */
-  .contact-info {
-    display: block;
-    // order: -1; /* Перемещаем номер телефона наверх (если нужно) */
-    // width: 100%;
-  }
-
-  .phone-number {
-     display: block;
-    font-size: 22px;
-    padding: 0;
-    border: none;
-    display: block;
-    margin-bottom: 10px;
-    color: #000000; /* Делаем цвет обычным черным */
-    text-decoration: underline; /* Добавляем подчеркивание для кликабельности */
-    white-space: nowrap;
-  }
-
-.navigation-mobile-wrapper {
-  // display: block;
-  // position: relative; 
-  display: inline-block;
-}
-
-  // .phone-number:hover {
-  //   text-decoration-color: #007bff;
-  // }
-
-  /* Блок с навигацией (app-navigation-bar) будет занимать всю ширину */
-  /* Предполагаю, что внутри app-navigation-bar есть своя логика адаптивности (гамбургер-меню) */
-  app-navigation-bar {
-    width: 100%;
-  }
-
-  .actions {
-    width: 100%; /* Кнопка занимает всю ширину на мобильных */
-    margin-top: 10px;
-  }
-  
-  .btn-calculator {
-    width: 100%; /* Растягиваем кнопку на всю ширину экрана */
-    margin-left: 0;
-    text-align: center; /* Центрируем текст внутри кнопки */
-  }
+    .btn-calculator {
+        width: 100%;
+        text-align: center;
+    }
 }
 // @keyframes repeats {
 //   /* Упрощенная анимация для постоянного цикла */

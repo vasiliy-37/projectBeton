@@ -13,7 +13,6 @@ interface Message {
 
 export class ChatService {
   private socket: Socket;
-  private url = 'http://localhost:3000'; // URL твоего сервера
 
   // 1. Уникальный ID гостя (берем из памяти или создаем новый)
   private guestId = localStorage.getItem('guestId') || this.generateId();
@@ -30,8 +29,11 @@ export class ChatService {
     // Сохраняем ID, чтобы чат не пропадал при перезагрузке
     localStorage.setItem('guestId', this.guestId);
 
-    // Подключаемся к серверу
-    this.socket = io(this.url);
+    // Тот же хост, что у страницы (localhost или IP по Wi‑Fi); прокси в dev — см. proxy.conf.json
+    this.socket = io({
+      path: '/socket.io/',
+      withCredentials: true,
+    });
 
     this.socket.on('chat_history', (history: Message[]) => {
       // Просто заменяем пустой массив сообщений на то, что пришло из базы

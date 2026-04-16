@@ -1,61 +1,50 @@
 .four-window-container {
   display: flex;
-  gap: 15px; 
-  margin-top: 15px;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  margin-top: 0;
 }
 
 .window {
-//   position: relative; 
-  display: block; 
-  max-width: 200px;
-  max-height: 200px;
-  padding: 0; 
-  overflow: hidden; 
-  background-color: #ffffff; 
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); 
-  transition: box-shadow 0.2s; 
-   backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-radius: 24px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); 
-  animation: fadeInFromTop 0.8s ease-out;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 100px;
+  height: 84px;
+  overflow: hidden;
+  background-color: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  transition: background-color 0.2s ease;
+  border: none;
 }
 
 .logo {
-  width: 100%; 
-  height: 100%; 
-  transform: scale(1.6); 
-  transform-origin: center center; 
-  margin: 0; 
-  object-fit: cover; 
-}
-
-.caption {
-  position: absolute; 
-  bottom: 14px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  padding: 5px; 
-//   color: #ffffff; /* Белый текст */
+  width: 100%;
+  height: 100%;
   margin: 0;
-  font-size: 12px;
-  color: #2c3e50;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-top: 5px; 
+  padding: 3px;
+  object-fit: contain;
+  filter: none;
+  opacity: 1;
 }
 
-/* Эффект при наведении (Необязательно) */
 .window:hover {
-  /* Мы оставили только изменение тени, чтобы избежать проблем с раскладкой */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
+  background: rgba(240, 240, 246, 0.45);
 }
 
 @media (max-width: 768px) {
   .four-window-container{
-    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .window {
+    width: calc(50% - 3px);
+    height: 76px;
   }
 }

@@ -1,40 +1,41 @@
-<div class="modal-backdrop"></div>
-<div class="modal-content">
-  <div class="modal-header">
-    <h3>Заказать бетон</h3>
-    <button class="close-button" (click)="closeModal.emit()">×</button>
-  </div>
-  <div class="modal-body">
-    <form [formGroup]="orderForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="name">Имя</label>
-        <input id="name" type="text" formControlName="name" />
-        @if (orderForm.get('name')?.invalid && orderForm.get('name')?.touched) {
-          <div class="error">Имя обязательно.</div>
-        }
-      </div>
-      <div class="form-group">
-        <label for="phone">Номер телефона</label>
-        <input id="phone" type="tel" formControlName="phone" />
-        @if (orderForm.get('phone')?.invalid && orderForm.get('phone')?.touched) {
-          <div class="error">Введите корректный номер телефона.</div>
-        }
-      </div>
-      <div class="form-group">
-        <label for="quantity">Количество (м³)</label>
-        <input id="quantity" type="number" formControlName="quantity" />
-        @if (orderForm.get('quantity')?.invalid && orderForm.get('quantity')?.touched) {
-          <div class="error">Количество обязательно.</div>
-        }
-      </div>
-      <div class="form-group">
-        <label for="brand">Марка бетона</label>
-        <input id="brand" type="text" formControlName="brand" />
-        @if (orderForm.get('brand')?.invalid && orderForm.get('brand')?.touched) {
-          <div class="error">Марка бетона обязательна.</div>
-        }
-      </div>
-      <button type="submit" [disabled]="orderForm.invalid">Отправить заказ</button>
-    </form>
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3>Заказать бетон</h3>
+      <button class="close-button" type="button" aria-label="Закрыть модальное окно" (click)="close()">×</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="orderForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="name">Имя</label>
+          <input id="name" type="text" formControlName="name" />
+          @if (orderForm.get('name')?.invalid && orderForm.get('name')?.touched) {
+            <div class="error">Имя обязательно.</div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="phone">Номер телефона</label>
+          <input id="phone" type="tel" formControlName="phone" />
+          @if (orderForm.get('phone')?.invalid && orderForm.get('phone')?.touched) {
+            <div class="error">Введите корректный номер телефона.</div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="quantity">Количество (м³)</label>
+          <input id="quantity" type="number" formControlName="quantity" />
+          @if (orderForm.get('quantity')?.invalid && orderForm.get('quantity')?.touched) {
+            <div class="error">Количество обязательно.</div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="brand">Марка бетона</label>
+          <input id="brand" type="text" formControlName="brand" />
+          @if (orderForm.get('brand')?.invalid && orderForm.get('brand')?.touched) {
+            <div class="error">Марка бетона обязательна.</div>
+          }
+        </div>
+        <button type="submit" [disabled]="orderForm.invalid">Отправить заказ</button>
+      </form>
+    </div>
   </div>
 </div>

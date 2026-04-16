@@ -1,15 +1,23 @@
 <div class="home-layout-wrapper">
+  <div class="hero-bg" aria-hidden="true">
+    <img src="/assets/background.png" alt="">
+    <div class="hero-overlay"></div>
+  </div>
+
   @if (!showModal()) {
     <div class="text-content-area">
       <div class="text-background">
-        <h1>Купить бетон в Иваново напрямую с завода</h1>
+        <h1>
+          КУПИТЬ БЕТОН <br>
+          В ИВАНОВО И ОБЛАСТИ <br>
+          <span>НАПРЯМУЮ</span> <br>
+          С ЗАВОДА
+        </h1>
         <p>
-          Мы гарантируем оперативную поставку высококачественного бетона любых марок прямо на ваш
-          объект в Иваново и области. Собственный автопарк миксеров. Точный объем. Никаких
-          посредников и переплат.
+          Производство и доставка товарного бетона всех марок. Собственный автопарк. Контроль
+          качества в сертифицированной лаборатории.
         </p>
       </div>
-      <app-cards-about-us [windowsData]="appWindowsData"></app-cards-about-us>
     </div>
   } @else {
     <app-order-modal
@@ -23,4 +31,39 @@
   <app-calculator (orderRequested)="handleOrderRequest($event)"></app-calculator>
   
 </div>
+
 <app-portfolio></app-portfolio>
+
+<section class="home-capabilities" aria-labelledby="home-capabilities-title">
+  <div class="home-capabilities__inner">
+    <h2 id="home-capabilities-title">Эффективная подача бетона бетононасосом на объекте</h2>
+    <p class="home-capabilities__lead">
+      Когда прямой подъезд миксера невозможен, лучшим решением для стройплощадки будет заказать
+      бетононасос. Это гарантирует быструю отгрузку смеси даже в самых сложных условиях.
+    </p>
+
+    <h3>Преимущества использования спецтехники</h3>
+    <ul class="home-capabilities__list">
+      <li>
+        <strong>Гибкость:</strong> профессиональная аренда АБН позволяет организовать работы на
+        участках с плотной застройкой или сложным рельефом.
+      </li>
+      <li>
+        <strong>Работа через препятствия:</strong> если забор или другие строения мешают
+        проезду, подача бетона стрелой решит проблему и доставит смесь точно в цель.
+      </li>
+      <li>
+        <strong>Труднодоступные зоны:</strong> возможна заливка через забор и другие преграды на
+        расстояния, где обычные лотки бессильны.
+      </li>
+      <li>
+        <strong>Дальность действия:</strong> прокачка бетона на расстоянии помогает подать смесь
+        вглубь участка без риска застревания тяжелой техники в мягком грунте.
+      </li>
+    </ul>
+    <p class="home-capabilities__note">Наши менеджеры помогут подобрать нужную технику.</p>
+  </div>
+</section>
+
+<app-home-grade-guide></app-home-grade-guide>
+<app-home-price-table></app-home-price-table>

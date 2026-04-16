@@ -1,125 +1,196 @@
-/* --- Контейнер навигации (современный серый фон) --- */
 nav {
-    background-color: rgba(0, 0, 0, 0); /* Полупрозрачный цвет фона */
-    padding: 0px; 
-    box-shadow: none; /* Мягкая, ненавязчивая тень */
-    border-bottom: none; /* Тонкая линия в цвет акцента */
-    position: sticky; /* Позиционируем на месте при прокрутке */ 
-    // top: 70px; /* Отступ от верхнего края, чтобы быть под хедером */
-    z-index: 999;
-    border-radius: 0; /* Убираем скругление */
+    padding: 0;
 }
 
-ul {
-    list-style-type: none;
+nav > ul {
+    list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
     align-items: center;
+    gap: 0.5rem;
 }
 
-// li {
-//     // margin: 0 15px; 
-// }
-
-/* --- Стили ссылок (Четкие, как кнопки) --- */
 a {
-    color: #000000; 
-    text-decoration: none;
-    padding: 10px 20px; /* Размер кнопки */
     display: block;
-    font-size: 15px;
+    color: #5a5b60;
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 2px;
+    font-size: 0.72rem;
     font-weight: 600;
-    transition: all 0.3s ease; /* Плавные переходы */
-    border-radius: 6px; /* Легкое скругление углов */
-    font-family: 'Oswald', sans-serif;
-    font-size: 18px;
-    // font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    transition: color 0.2s ease, background-color 0.2s ease;
 }
 
-/* Эффект при наведении (Легкий фон и изменение цвета) */
 a:hover {
-    color: #e07967; 
-    // background-color: rgba(0, 191, 255, 0.103); 
+    color: #bb0100;
 }
 
-/* --- Стиль для активной (текущей) страницы --- */
 a.active-link {
-    color: #e07967; /* Белый текст */
-    background-color: #3d87b800; /* Яркий голубой фон */
+    color: #bb0100;
+    background: rgba(187, 1, 0, 0.06);
+}
+
+.dropdown-toggle.active-link {
+    color: #bb0100;
+    background: rgba(187, 1, 0, 0.06);
+}
+
+.nav-dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 0.72rem;
     font-weight: 600;
-    // box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3); /* Тень для активного элемента */
-    transform: translateY(-2px); /* Активная ссылка немного приподнята */
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #5a5b60;
+    background: transparent;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.dropdown-toggle::after {
+    content: '▾';
+    font-size: 0.7em;
+    line-height: 1;
+}
+
+.nav-dropdown.is-open .dropdown-toggle::after {
+    transform: rotate(180deg);
+}
+
+.dropdown-toggle:hover {
+    color: #bb0100;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+    background: #ffffff;
+    border: 1px solid rgba(172, 173, 177, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 18px 34px rgba(45, 47, 51, 0.12);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+    z-index: 10;
+}
+
+.nav-dropdown:hover .dropdown-menu,
+.nav-dropdown.is-open .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.dropdown-menu a {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    background: transparent;
+}
+
+.dropdown-menu a:hover {
+    background: rgba(187, 1, 0, 0.08);
 }
 
 .menu-toggle {
     display: none;
 }
 
-.main-nav ul {
-    list-style: none;
-    display: flex;
-    gap: 1.5rem;
-    margin: 0;
-    padding: 0;
-}
-
 @media (max-width: 768px) {
-    
-     .menu-toggle {
-    display: block; 
-    background: none;
-    border: none;
-    font-size: 1.8rem;
-    cursor: pointer;
-    color: #333; /* Цвет иконки */
-  }
+    .menu-toggle {
+        display: block;
+        background: transparent;
+        border: none;
+        color: #2d2f33;
+        font-size: 1.4rem;
+        cursor: pointer;
+    }
 
-  /* Скрываем обычное меню на мобильных по умолчанию */
-  .main-nav {
-    /* Позиционируем меню справа за пределами экрана */
-    position: fixed; /* Используем fixed, чтобы оно не прокручивалось вместе с контентом */
-    top: 0;
-    right: 0;
-    width: 300px; /* Заданная вами ширина */
-    height: 100vh; /* Занимает всю высоту экрана */
-    background-color: #ebebeb; 
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    padding: 1rem;
-    overflow-y: auto; /* Прокрутка, если контента много */
+    .main-nav {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: min(86vw, 320px);
+        height: 100vh;
+        padding: 1rem;
+        background: #ffffff;
+        box-shadow: 0 20px 40px rgba(45, 47, 51, 0.1);
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+    }
 
-    /* --- Магия выезжания: --- */
-    /* Скрываем меню полностью за пределами видимой области */
-    transform: translateX(100%); 
-    /* Добавляем плавный переход для анимации */
-    transition: transform 0.3s ease-in-out; 
-  }
+    .main-nav.is-open {
+        transform: translateX(0);
+    }
 
-  /* Класс, который добавляется при открытии (ваша isMenuOpen переменная в Angular) */
-  .main-nav.is-open {
-    /* Возвращаем меню на экран (сдвигаем его на 0 по оси X) */
-    transform: translateX(0); 
-    /* Убедитесь, что display: block; или display: flex; установлен */
-    display: block; 
-  }
+    .main-nav ul {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+    }
 
-  .main-nav ul {
-    flex-direction: column; /* Пункты меню выстраиваем вертикально */
-    // gap: 0;
-    width: 100%;
-    // list-style: none;
-    // padding: 0;
-    // margin: 0;
-}
+    .main-nav li a {
+        padding: 12px;
+        border-radius: 2px;
+        background: #f0f0f6;
+    }
 
-  .main-nav li a {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    text-decoration: none;
-    color: #333;
-    border-bottom: 1px solid #f0f0f0;
-  }
+    .main-nav .nav-dropdown {
+        width: 100%;
+    }
+
+    .main-nav .dropdown-toggle {
+        width: 100%;
+        justify-content: space-between;
+        text-align: left;
+        padding: 12px;
+        border-radius: 2px;
+        border: none;
+        background: #f0f0f6;
+    }
+
+    .main-nav .dropdown-menu {
+        position: static;
+        min-width: auto;
+        margin-top: 4px;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+    }
+
+    .main-nav .dropdown-menu li a {
+        padding-left: 20px;
+    }
 }

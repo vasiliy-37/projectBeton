@@ -1,0 +1,121 @@
+.grade-guide {
+  padding: 72px 0;
+  background: rgba(228, 226, 228, 0.35);
+}
+
+.grade-guide__inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.grade-guide__head {
+  margin-bottom: 40px;
+}
+
+.grade-guide__accent {
+  width: 48px;
+  height: 4px;
+  background: #bb0100;
+  margin-bottom: 14px;
+}
+
+.grade-guide__title {
+  margin: 0 0 10px;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  color: #2d2f33;
+}
+
+.grade-guide__subtitle {
+  margin: 0;
+  color: #5a5b60;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.grade-guide__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.grade-card {
+  position: relative;
+  background: #ffffff;
+  padding: 18px;
+  border-left: 4px solid rgba(172, 173, 177, 0.55);
+  box-shadow: 0 20px 40px rgba(45, 47, 51, 0.06);
+}
+
+.grade-card:hover {
+  border-left-color: #bb0100;
+}
+
+.grade-card--featured {
+  border-left-color: #bb0100;
+  box-shadow: 0 20px 40px rgba(45, 47, 51, 0.1);
+}
+
+.grade-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.grade-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #bb0100;
+  padding: 4px 8px;
+  background: rgba(187, 1, 0, 0.06);
+}
+
+.grade-star {
+  margin-left: auto;
+  color: #bb0100;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.grade-card__title {
+  margin: 0 0 10px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #2d2f33;
+}
+
+.grade-card__text {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: #5a5b60;
+}
+
+@media (max-width: 1200px) {
+  .grade-guide__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .grade-guide {
+    padding: 44px 0;
+  }
+
+  .grade-guide__inner {
+    padding: 0 14px;
+  }
+
+  .grade-guide__grid {
+    grid-template-columns: 1fr;
+  }
+}

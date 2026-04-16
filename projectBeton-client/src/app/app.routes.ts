@@ -11,11 +11,13 @@ import { LoginComponent } from './components/login/login';
 import { AuthGuard } from './auth-guard';
 import { AdminChatsComponent } from './components/admin-chats/admin-chats';
 import { AdminWorks } from './components/admin-works/admin-works';
+import { Useful } from './components/useful/useful';
 
 export const routes: Routes = [
     { path: '', component: Home, title: 'Главная' },
     { path: 'price', component: Price, title: 'Прайс-лист' },
     { path: 'services', component: Services, title: 'Услуги' },
+    { path: 'useful', component: Useful, title: 'Как выбрать марку бетона: таблица и советы' },
     { path: 'contacts', component: Contacts, title: 'Контакты' },
 
     { path: 'login', component: LoginComponent, title: 'Вход Администратора' },

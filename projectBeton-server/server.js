@@ -30,10 +30,11 @@ const Work = require('./models/Work');
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:4200",
-        methods: ["GET", "POST"],
-        credentials: true
-    }
+        // localhost и доступ по IP (ng serve --configuration lan, телефон в той же сети)
+        origin: true,
+        methods: ['GET', 'POST'],
+        credentials: true,
+    },
 });
 
 const authenticateToken = (req, res, next) => {
@@ -59,10 +60,10 @@ mongoose.connect(DB_URL)
 const Brand = require('./models/product');
 
 const corsOptions = {
-    origin: 'http://localhost:4200', // Адрес вашего Angular-приложения
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true // <-- КЛЮЧЕВОЕ ЗНАЧЕНИЕ ДЛЯ КУК!
+    credentials: true,
 };
 
 app.use(express.json({ limit: '10mb' }));

@@ -1,73 +1,66 @@
 .invitation-banner {
-  width: 100%; /* Занимает всю ширину */
-  height: 35px; /* Высота приглашения */
-  background: linear-gradient(to bottom, #555555, #000000); /* Полупрозрачный цвет фона */
-  display: flex; /* Центрирование содержимого */
+  width: 100%;
+  min-height: 38px;
+  background: linear-gradient(135deg, #bb0100, #ff7763);
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 10px 20px;
   box-sizing: border-box;
-  margin-bottom: 10px; /* Без внешних отступов */
-  font-family: 'Montserrat', sans-serif;
-  // position: fixed; /* Закрепляем на месте при прокрутке */
-  // top: 0;          /* В самом верху viewport */
-  // left: 0;         /* По левому краю viewport */
-  z-index: 10001;  /* Очень высокий z-index, чтобы быть поверх всех */
-  border-radius: 0; /* Без скругления */
-  box-shadow: none; /* Без тени */
-  transition: all 0.3s ease;
+  margin: 0 0 10px;
+  z-index: 10001;
+  border-radius: 2px;
+  color: #ffefed;
+  position: relative;
+  padding-right: 94px;
 }
 
-/* Эффект при наведении — чуть более выразительный */
-.invitation-banner:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-}
-
-/* Стиль для текста */
 .invitation-banner p {
-  font-size: 15px; /* чуть меньше, чтобы укладываться в меньшую высоту */
-  color: #ffffff; /* тёмный, чтобы хорошо читалось */
+  font-size: 0.72rem;
+  color: #ffefed;
   margin: 0;
-  letter-spacing: 1px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  line-height: 1;
+  line-height: 1.4;
   text-align: left;
+  font-weight: 700;
 }
 
 .close-button {
-  margin-right: 15%;
   position: absolute;
+  top: 50%;
   right: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  line-height: 1;
-  color: #c2c1c1;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 239, 237, 0.2);
+  border: 1px solid rgba(255, 239, 237, 0.4);
+  border-radius: 2px;
+  font-size: 17px;
+  line-height: 0.9;
+  color: #ffefed;
   cursor: pointer;
-  padding: 5px;
+  padding: 0;
+  z-index: 3;
+  opacity: 0.8;
 }
 
 .close-button:hover {
-  color: #ffffff;
+  opacity: 1;
 }
 
 @media (max-width: 768px) {
   .invitation-banner {
-    height: auto; /* Автоматическая высота, чтобы текст мог переноситься */
-    padding: 10px 35px;
-    // flex-wrap: wrap; /* Позволяем элементам переноситься */
-    // justify-content: space-between;
+    padding: 10px 70px 10px 12px;
   }
 
   .invitation-banner p {
-    font-size: 12px; /* Уменьшаем размер шрифта, чтобы поместилось на узком экране */
+    font-size: 0.62rem;
     max-width: calc(100% - 30px);
-    // margin-right: 10px;
   }
 
-  /* Компонент кнопки контакта тоже может потребовать адаптивных стилей внутри себя */
   app-contact-button {
-     font-size: 12px; 
+    font-size: 12px;
     padding: 6px 10px;
   }
 }

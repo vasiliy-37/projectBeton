@@ -1,6 +1,7 @@
 import { Component, signal, ElementRef, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -12,15 +13,25 @@ import { CommonModule } from '@angular/common';
 export class NavigationBar {
 
 isMenuOpen = signal(false);
+isPriceMenuOpen = signal(false);
 
-constructor(private el: ElementRef) {}
+constructor(private el: ElementRef, private router: Router) {}
 
 toggleMenu() {
   this.isMenuOpen.update(value => !value);
 }
 
+togglePriceMenu() {
+  this.isPriceMenuOpen.update(value => !value);
+}
+
 closeMenu() {
   this.isMenuOpen.set(false);
+  this.isPriceMenuOpen.set(false);
+}
+
+isPriceSectionActive(): boolean {
+  return this.router.url.startsWith('/price') || this.router.url.startsWith('/services');
 }
 
  @HostListener('document:click', ['$event'])

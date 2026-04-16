@@ -24,7 +24,7 @@ interface ApiResponse {
 })
 export class OrderService {
 
-  private baseApiUrl = 'http://localhost:3000/api'; 
+  private baseApiUrl = '/api';
   
   private http = inject(HttpClient);
 

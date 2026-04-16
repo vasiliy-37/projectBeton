@@ -43,4 +43,8 @@ export class FormInvitation {
       }
     }
   }
+
+  close(): void {
+    this.closeModal.emit();
+  }
 }

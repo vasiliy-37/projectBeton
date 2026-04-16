@@ -1,28 +1,27 @@
-<div class="modal-backdrop"></div>
-<div class="modal-content">
-  <div class="modal-header">
-    <h3>Заказать звонок</h3>
-    <button class="close-button" (click)="closeModal.emit()">×</button>
-  </div>
-  <div class="modal-body">
-    <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="name">Имя</label>
-        <input id="name" type="text" formControlName="name" />
-        <!-- Используем @if для показа сообщения об ошибке -->
-        @if (contactForm.get('name')?.invalid && contactForm.get('name')?.touched) {
-          <div class="error">Имя обязательно.</div>
-        }
-      </div>
-      <div class="form-group">
-        <label for="phone">Номер телефона</label>
-        <input id="phone" type="tel" formControlName="phone" />
-        <!-- Используем @if для показа сообщения об ошибке -->
-        @if (contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched) {
-          <div class="error">Введите корректный номер телефона.</div>
-        }
-      </div>
-      <button type="submit" [disabled]="contactForm.invalid">Отправить</button>
-    </form>
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3>Узнать условия</h3>
+      <button class="close-button" type="button" aria-label="Закрыть модальное окно" (click)="close()">×</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="name">Имя</label>
+          <input id="name" type="text" formControlName="name" />
+          @if (contactForm.get('name')?.invalid && contactForm.get('name')?.touched) {
+            <div class="error">Имя обязательно.</div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="phone">Номер телефона</label>
+          <input id="phone" type="tel" formControlName="phone" />
+          @if (contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched) {
+            <div class="error">Введите корректный номер телефона.</div>
+          }
+        </div>
+        <button type="submit" [disabled]="contactForm.invalid">Отправить</button>
+      </form>
+    </div>
   </div>
 </div>

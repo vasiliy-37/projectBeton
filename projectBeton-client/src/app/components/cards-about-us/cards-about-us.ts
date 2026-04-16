@@ -1,10 +1,9 @@
 import { Component, Input} from '@angular/core';
-import { WindowData } from '../home/home';
 
-// export interface WindowData {
-//   logoUrl: string;
-//   caption: string;
-// }
+export interface WindowData {
+  logoUrl: string;
+  caption: string;
+}
 
 @Component({
   selector: 'app-cards-about-us',

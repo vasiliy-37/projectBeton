@@ -48,4 +48,8 @@ export class OrderModal {
       }
     }
   }
+
+  close(): void {
+    this.closeModal.emit();
+  }
 }

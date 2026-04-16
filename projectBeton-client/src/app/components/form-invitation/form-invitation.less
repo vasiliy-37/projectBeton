@@ -1,61 +1,137 @@
-.modal-backdrop {
+.modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1001;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(30, 31, 35, 0.35);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  z-index: 1200;
 }
-.modal-content {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
+
+.modal-dialog {
+  width: min(100%, 420px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1001;
-  width: 400px;
-  max-width: 90%;
+  border: 1px solid rgba(172, 173, 177, 0.24);
+  box-shadow: 0 24px 50px rgba(20, 21, 25, 0.18);
 }
+
 .modal-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(172, 173, 177, 0.25);
 }
+
+.modal-header h3 {
+  margin: 0;
+  color: #2d2f33;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .close-button {
-  border: none;
-  background: none;
-  font-size: 1.5em;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(172, 173, 177, 0.35);
+  border-radius: 50%;
+  background: #ffffff;
+  color: #5a5b60;
+  font-size: 1.2rem;
+  line-height: 1;
   cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
+
+.close-button:hover {
+  color: #bb0100;
+  border-color: rgba(187, 1, 0, 0.4);
+  background: rgba(187, 1, 0, 0.04);
+}
+
+.modal-body {
+  padding: 16px 18px 18px;
+}
+
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: #2d2f33;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(172, 173, 177, 0.35);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #2d2f33;
+  font: inherit;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: rgba(187, 1, 0, 0.55);
+  box-shadow: 0 0 0 3px rgba(187, 1, 0, 0.12);
+}
+
 .error {
-  color: red;
-  font-size: 0.8em;
+  margin-top: 6px;
+  color: #b41340;
+  font-size: 0.78rem;
 }
 
-@media (max-width: 600px) {
-  .modal-content {
-    /* На очень маленьких экранах делаем окно шире, чтобы использовать больше места */
-    width: 95%; 
-    max-width: 95%;
-    padding: 15px; /* Уменьшаем внутренние отступы */
+button[type='submit'] {
+  width: 100%;
+  margin-top: 4px;
+  padding: 11px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #bb0100;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button[type='submit']:hover:not(:disabled) {
+  background: #980100;
+}
+
+button[type='submit']:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .modal-header {
+    padding: 14px;
   }
 
-  .modal-header h2 {
-    font-size: 1.2em; /* Уменьшаем заголовок модального окна */
-  }
-
-  .close-button {
-    font-size: 1.2em; /* Уменьшаем кнопку закрытия, чтобы она была пропорциональна заголовку */
-    padding: 0; /* Убираем лишний padding */
+  .modal-body {
+    padding: 14px;
   }
 }

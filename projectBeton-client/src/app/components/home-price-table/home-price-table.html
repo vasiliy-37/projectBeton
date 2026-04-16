@@ -1,0 +1,49 @@
+<section class="home-prices" id="tseny-na-beton" aria-labelledby="home-prices-title">
+  <div class="home-prices__inner">
+    <header class="home-prices__head">
+      <h2 id="home-prices-title" class="home-prices__title">
+        <span class="home-prices__title-accent">Цены</span> на бетон
+      </h2>
+      <p class="home-prices__subtitle">Актуально на сегодняшний день</p>
+    </header>
+
+    @if (isLoading()) {
+      <p class="home-prices__state">Загружаем прайс…</p>
+    } @else if (error()) {
+      <p class="home-prices__state home-prices__state--error">{{ error() }}</p>
+    } @else if (brands().length === 0) {
+      <p class="home-prices__state">Прайс пока пуст.</p>
+    } @else {
+      <div class="home-prices__table-wrap">
+        <table class="home-prices__table">
+          <caption class="sr-only">
+            Таблица цен на бетон по категориям и маркам
+          </caption>
+          <thead>
+            <tr>
+              <th class="home-prices__th-brand" scope="col">Марка</th>
+              <th class="home-prices__th-price" scope="col">Цена за м³</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (brandItem of brands(); track brandItem._id; let i = $index) {
+              @if (i === 0 || brands()[i - 1].category !== brandItem.category) {
+                <tr>
+                  <th class="home-prices__category" scope="colgroup" colspan="2">
+                    {{ brandItem.category }}
+                  </th>
+                </tr>
+              }
+              <tr>
+                <td>{{ brandItem.brand }}</td>
+                <td class="home-prices__price">
+                  {{ brandItem.price ?? 0 | number: '1.0-0' }} ₽
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>
