@@ -1,0 +1,76 @@
+.admin-delivery {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-delivery h2 {
+  margin: 0;
+}
+
+.admin-delivery h3 {
+  margin: 0;
+}
+
+.admin-delivery__create,
+.admin-delivery__card {
+  background: #fff;
+  border: 1px solid #dfe2ea;
+  border-radius: 10px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.admin-delivery__list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-delivery__grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 8px;
+}
+
+.admin-delivery input[type='text'],
+.admin-delivery input[type='number'] {
+  border: 1px solid #c7ccda;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.admin-delivery__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-delivery button {
+  background: #bb0100;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.admin-delivery__delete {
+  background: #2d2f33;
+}
+
+.admin-delivery__empty {
+  margin: 0;
+  color: #6d7079;
+}
+
+@media (max-width: 1100px) {
+  .admin-delivery__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-delivery__grid {
+    grid-template-columns: 1fr;
+  }
+}

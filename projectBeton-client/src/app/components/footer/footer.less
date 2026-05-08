@@ -14,6 +14,7 @@
     gap: 30px;
     border-bottom: 1px solid rgba(172, 173, 177, 0.15);
     padding: 0 20px 20px;
+    will-change: transform;
 }
 
 .footer-section {
@@ -75,23 +76,44 @@
 .footer-viewport {
     overflow: hidden; 
     width: 100%;
+    position: relative;
 }
 
 .footer-container {
     display: flex; 
-        flex-direction: row;
-   max-width: none;
-        width: 300%; 
-        flex-wrap: nowrap;
-        gap: 0; 
-        border-bottom: none; 
-        transition: transform 0.6s ease-in-out;
+    flex-direction: row;
+    max-width: none;
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: 0;
+    border-bottom: none;
+    padding: 0;
+    transition: transform 0.45s ease-in-out;
+    will-change: transform;
 }
 
 .footer-section {
-    flex: 0 0 33.333% !important ;
-    text-align: center; 
+    flex: 0 0 100%;
+    min-width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 20px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 0;
+}
+
+.footer-section h3,
+.footer-section p,
+.footer-section ul {
+    text-align: center;
+}
+
+.footer-section ul {
+    margin: 0 auto;
 }
 
 .scroll-arrow {
@@ -99,7 +121,7 @@
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        background: rgba(187, 1, 0, 0.88);
+        background: rgba(187, 1, 0, 0.72);
         color: #ffefed;
         border: none;
         padding: 8px 12px;
@@ -107,11 +129,12 @@
         z-index: 10;
         font-size: 1.2em;
         border-radius: 2px;
-        transition: background 0.3s;
+        transition: background 0.3s, color 0.3s;
 }
 
 .scroll-arrow:hover {
-    background: #a40100;
+    background: rgba(164, 1, 0, 0.78);
+    color: #ffefed;
 }
 
 .prev-arrow {

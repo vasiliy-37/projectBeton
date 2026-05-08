@@ -13,6 +13,44 @@
   margin-bottom: 28px;
 }
 
+.useful-toc {
+  margin-bottom: 24px;
+  padding: 16px 18px;
+  background: #ffffff;
+  border: 1px solid rgba(172, 173, 177, 0.18);
+  border-radius: 4px;
+  box-shadow: 0 12px 24px rgba(45, 47, 51, 0.05);
+}
+
+.useful-toc__title {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #5a5b60;
+}
+
+.useful-toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.useful-toc a {
+  color: #bb0100;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.useful-toc a:hover {
+  color: #a40100;
+}
+
 .useful-page h1 {
   margin: 0 0 12px;
   font-size: clamp(1.8rem, 4vw, 3rem);
@@ -90,6 +128,103 @@
 
 .useful-memo {
   margin-top: 28px;
+}
+
+.useful-article {
+  margin-top: 28px;
+  padding: 22px 20px 24px;
+  background: #ffffff;
+  border: 1px solid rgba(172, 173, 177, 0.18);
+  border-left: 4px solid #bb0100;
+  border-radius: 4px;
+  box-shadow: 0 20px 40px rgba(45, 47, 51, 0.06);
+}
+
+.useful-article h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #2d2f33;
+  max-width: 920px;
+}
+
+.useful-article__lead {
+  margin: 0 0 20px;
+  color: #5a5b60;
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 900px;
+}
+
+.useful-article__subheading {
+  margin: 22px 0 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #2d2f33;
+}
+
+.useful-article__subheading:first-of-type {
+  margin-top: 0;
+}
+
+.useful-article p {
+  margin: 0 0 12px;
+  color: #5a5b60;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  max-width: 900px;
+}
+
+.useful-article p:last-child {
+  margin-bottom: 0;
+}
+
+.useful-article__step {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(172, 173, 177, 0.22);
+}
+
+.useful-article__step:first-of-type {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.useful-article__step h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #2d2f33;
+}
+
+.useful-article__list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #5a5b60;
+  line-height: 1.55;
+}
+
+.useful-article__list li {
+  margin-bottom: 8px;
+}
+
+.useful-article__list li:last-child {
+  margin-bottom: 0;
+}
+
+.useful-article__callout {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  background: rgba(240, 240, 246, 0.85);
+  border-radius: 4px;
+  border: 1px solid rgba(172, 173, 177, 0.25);
+  color: #2d2f33;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .useful-memo h2 {
@@ -195,11 +330,77 @@
 }
 
 @media (max-width: 768px) {
+  .useful-toc__list {
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .useful-page {
     padding: 44px 0;
   }
 
   .useful-page__inner {
     padding: 0 14px;
+  }
+
+  .useful-table-wrap {
+    overflow: visible;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .useful-table {
+    min-width: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .useful-table thead {
+    display: none;
+  }
+
+  .useful-table tbody,
+  .useful-table tr,
+  .useful-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .useful-table tr {
+    margin-bottom: 12px;
+    border: 1px solid rgba(172, 173, 177, 0.2);
+    border-left: 4px solid #bb0100;
+    border-radius: 4px;
+    background: #ffffff;
+    box-shadow: 0 12px 24px rgba(45, 47, 51, 0.05);
+    overflow: hidden;
+  }
+
+  .useful-table tbody tr:nth-child(even) td {
+    background: transparent;
+  }
+
+  .useful-table td {
+    padding: 10px 12px;
+    border-top: 1px solid rgba(172, 173, 177, 0.15);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .useful-table td:first-child {
+    border-top: 0;
+  }
+
+  .useful-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5a5b60;
   }
 }

@@ -1,17 +1,71 @@
-<div>
-    <form #phoneForm="ngForm" (ngSubmit)="setPhoneNumber()">
-      <label for="phoneNumber">Phone Number:</label>
+<section class="admin-contacts">
+  <h2>Управление контактами</h2>
+
+  <form #phoneForm="ngForm" (ngSubmit)="setPhoneNumber()" class="admin-contacts__block">
+    <h3>Номер, адрес и карта</h3>
+    <label for="phoneNumber">Телефон для сайта</label>
+    <input
+      type="text"
+      id="phoneNumber"
+      name="phoneNumber"
+      [(ngModel)]="phoneNumber"
+      required
+      #phoneInput="ngModel"
+      placeholder="+7 (900) 000-00-00"
+    />
+    <div *ngIf="phoneInput.invalid && phoneInput.touched" class="error">
+      Укажите номер телефона.
+    </div>
+
+    <label for="address">Адрес для страницы и футера</label>
+    <input
+      type="text"
+      id="address"
+      name="address"
+      [(ngModel)]="address"
+      placeholder="141009, г. Иваново, ул. Бетонная, 5"
+    />
+
+    <label for="mapEmbedUrl">Ссылка embed для карты</label>
+    <input
+      type="url"
+      id="mapEmbedUrl"
+      name="mapEmbedUrl"
+      [(ngModel)]="mapEmbedUrl"
+      placeholder="https://www.openstreetmap.org/export/embed.html?..."
+    />
+
+    <a [href]="mapEditorUrl" target="_blank" rel="noopener noreferrer">
+      Открыть карту и выбрать стартовый экран
+    </a>
+
+    <button type="submit" [disabled]="phoneForm.invalid">Сохранить контакты</button>
+  </form>
+
+  <div class="admin-contacts__block">
+    <h3>Email для сайта</h3>
+    <form #emailForm="ngForm" (ngSubmit)="addEmail()" class="admin-contacts__email-form">
       <input
-        type="text"
-        id="phoneNumber"
-        name="phoneNumber"
-        [(ngModel)]="phoneNumber"
+        type="email"
+        name="email"
+        [(ngModel)]="newEmail"
         required
-        #phoneInput="ngModel"
+        email
+        #emailInput="ngModel"
+        placeholder="example@domain.ru"
       />
-      <div *ngIf="phoneInput.invalid && phoneInput.touched" class="error">
-        Please enter a valid 10-digit phone number.
-      </div>
-      <button type="submit" [disabled]="phoneForm.invalid">Update</button>
+      <button type="submit" [disabled]="emailForm.invalid">Добавить email</button>
     </form>
+
+    <ul class="admin-contacts__email-list" *ngIf="emails.length; else emptyEmails">
+      <li *ngFor="let email of emails">
+        <span>{{ email }}</span>
+        <button type="button" (click)="removeEmail(email)">Удалить</button>
+      </li>
+    </ul>
+
+    <ng-template #emptyEmails>
+      <p class="admin-contacts__empty">Список email пуст.</p>
+    </ng-template>
   </div>
+</section>

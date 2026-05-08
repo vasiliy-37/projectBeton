@@ -4,6 +4,24 @@
       <div class="card create-form-card">
         <h2>➕ Добавить новую услугу</h2>
         <div class="form-grid">
+          <input 
+            type="text" 
+            [(ngModel)]="newService().category" 
+            (ngModelChange)="onNewServiceCategoryChange($event)"
+            placeholder="Группа (например, Доставка)"
+            name="new_category"
+            [disabled]="isCreating()"
+            class="rounded-md border p-2"
+          >
+          <input
+            type="text"
+            [(ngModel)]="newService().groupSubtitle"
+            (ngModelChange)="onNewServiceGroupSubtitleChange($event)"
+            placeholder="Подпись группы (необязательно)"
+            name="new_group_subtitle"
+            [disabled]="isCreating()"
+            class="rounded-md border p-2"
+          >
           
           <input 
             type="text" 
@@ -62,6 +80,8 @@
       <table *ngIf="!isLoading() && services().length > 0" class="services-table">
         <thead>
           <tr>
+            <th>Группа</th>
+            <th>Подпись группы</th>
             <th>Название услуги</th>
             <th>Цена</th>
             <th>Ед. изм.</th> <th class="w-48">Действия</th>
@@ -71,11 +91,31 @@
           <tr *ngFor="let service of services(); trackBy: trackByServiceId" [class.editing]="service.isEditing">
             
             <ng-container *ngIf="!service.isEditing">
+              <td>{{ service.category }}</td>
+              <td>{{ service.groupSubtitle || '—' }}</td>
               <td>{{ service.name }}</td>
               <td>{{ service.price }}</td>
               <td>{{ service.unit }}</td> </ng-container>
 
             <ng-container *ngIf="service.isEditing">
+              <td>
+                <input
+                  type="text"
+                  [(ngModel)]="service.category"
+                  name="edit_category_{{service._id}}"
+                  [disabled]="service.isSaving"
+                  class="edit-input"
+                >
+              </td>
+              <td>
+                <input
+                  type="text"
+                  [(ngModel)]="service.groupSubtitle"
+                  name="edit_group_subtitle_{{service._id}}"
+                  [disabled]="service.isSaving"
+                  class="edit-input"
+                >
+              </td>
               <td>
                 <input 
                   type="text" 
@@ -120,7 +160,7 @@
               <ng-container *ngIf="service.isEditing">
                 <button 
                   (click)="updateService(service)" 
-                  [disabled]="service.isSaving || !service.name || service.price <= 0 || !service.unit"
+                  [disabled]="service.isSaving || !service.category || !service.name || service.price < 0 || !service.unit"
                   class="save-btn"
                 >
                   {{ service.isSaving ? 'Сохранение...' : '✅ Сохранить' }}

@@ -103,6 +103,10 @@ app-calculator {
     color: #2d2f33;
 }
 
+.home-capabilities__brand-accent {
+    color: #bb0100;
+}
+
 .home-capabilities__lead {
     margin: 0 0 14px;
     color: #5a5b60;
@@ -145,6 +149,53 @@ app-calculator {
     color: #bb0100;
 }
 
+.home-cities {
+    padding: 46px 0;
+    background: #ffffff;
+}
+
+.home-cities__inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.home-cities h2 {
+    margin: 0 0 10px;
+    font-size: clamp(1.35rem, 2.2vw, 1.95rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #2d2f33;
+}
+
+.home-cities p {
+    margin: 0 0 14px;
+    color: #5a5b60;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    font-weight: 500;
+    max-width: 900px;
+}
+
+.home-cities__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px 14px;
+}
+
+.home-cities__list a {
+    color: #bb0100;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.home-cities__list a:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 768px) {
     .home-layout-wrapper {
         padding: 18px 0 14px;
@@ -165,10 +216,12 @@ app-calculator {
         display: block;
         margin-left: 0;
         max-width: none;
+        padding: 0 14px;
     }
 
     .text-background {
         padding: 0;
+        text-align: center;
     }
 
     h1 {
@@ -178,6 +231,7 @@ app-calculator {
 
     p {
         font-size: 0.94rem;
+        margin: 0 auto;
     }
 
     .home-capabilities {
@@ -202,5 +256,21 @@ app-calculator {
 
     .home-capabilities__note {
         font-size: 0.76rem;
+    }
+
+    .home-cities {
+        padding: 36px 0;
+    }
+
+    .home-cities__inner {
+        padding: 0 14px;
+    }
+
+    .home-cities p {
+        font-size: 0.92rem;
+    }
+
+    .home-cities__list {
+        grid-template-columns: 1fr;
     }
 }

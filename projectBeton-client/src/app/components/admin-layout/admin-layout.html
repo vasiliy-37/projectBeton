@@ -10,11 +10,7 @@
             <a routerLink="/admin/price" routerLinkActive="active">Прайс-лист</a>
             <a routerLink="/admin/service" routerLinkActive="active">Услуги</a>
             <a routerLink="/admin/contacts" routerLinkActive="active">Контакты</a>
-            <a routerLink="/admin/chats" routerLinkActive="active">Сообщения 💬@if (chatService.totalUnread() > 0) {
-                <span class="menu-unread-badge">
-                    {{ chatService.totalUnread() }}
-                </span>
-                }</a>
+            <a routerLink="/admin/delivery-cities" routerLinkActive="active">Города доставки</a>
             <a routerLink="/admin/fotoedit" routerLinkActive="active">Фото работ</a>
         </nav>
 

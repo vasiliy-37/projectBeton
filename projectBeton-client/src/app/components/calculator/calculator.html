@@ -1,12 +1,13 @@
 <div class="calculator-container" [formGroup]="form">
   <h2>Заказ бетона онлайн</h2>
+  <p class="calculator-subtitle">Выберите марку и объем, чтобы сразу увидеть предварительную стоимость.</p>
 
   @if (isLoading()) {
     <p>Сверяем цены с базой...</p>
   } @else {
     <div class="grade-selection">
-      <label>Что заказываем?</label>
-      <select formControlName="category" (change)="syncSignals()">
+      <label for="calculator-category">Что заказываем?</label>
+      <select id="calculator-category" formControlName="category" (change)="syncSignals()">
         @for (cat of uniqueCategories(); track cat) {
           <option [value]="cat">{{ cat }}</option>
         }
@@ -14,22 +15,99 @@
     </div>
 
     <div class="grade-selection">
-      <label>Выберите марку:</label>
-      <select formControlName="grade" (change)="syncSignals()">
+      <label for="calculator-grade">Выберите марку:</label>
+      <select id="calculator-grade" formControlName="grade" (change)="syncSignals()">
         @for (item of filteredBrands(); track item._id) {
-          <option [value]="item.brand">{{ item.brand }} — {{ item.price }} руб/м³</option>
+          <option [value]="item.brand">{{ formatGradeLabel(item.brand) }} — {{ item.price }} руб/м³</option>
         }
       </select>
     </div>
 
     <div class="manual-input">
-      <label>Необходимый объем (м³):</label>
-      <input type="number" formControlName="volume" (input)="syncSignals()" placeholder="Например: 5">
+      <label for="calculator-volume">Необходимый объем (м³):</label>
+      <input
+        id="calculator-volume"
+        type="number"
+        inputmode="decimal"
+        step="0.1"
+        min="0"
+        formControlName="volume"
+        (input)="syncSignals()"
+        placeholder="Например: 5"
+      >
     </div>
 
+    <div class="grade-selection">
+      <label class="delivery-toggle">
+        <input
+          type="checkbox"
+          formControlName="includeDelivery"
+          (change)="syncSignals()"
+        />
+        <span>Добавить доставку</span>
+      </label>
+    </div>
+
+    @if (includeDelivery()) {
+      <div class="grade-selection">
+        <label for="calculator-delivery-city">Город доставки:</label>
+        <select id="calculator-delivery-city" formControlName="deliveryCitySlug" (change)="syncSignals()">
+          @for (city of deliveryCities(); track city._id) {
+            <option [value]="city.slug">{{ city.name }} ({{ city.pricePerM3 }} руб/м³)</option>
+          }
+        </select>
+        <p class="delivery-note">Минимум 7 м³ для расчета доставки.</p>
+      </div>
+    }
+
+    <div class="grade-selection">
+      <label class="delivery-toggle">
+        <input
+          type="checkbox"
+          formControlName="includePump"
+          (change)="syncSignals()"
+        />
+        <span>Добавить бетононасос</span>
+      </label>
+    </div>
+
+    @if (includePump()) {
+      <div class="grade-selection">
+        <label for="calculator-pump-service">Бетононасос:</label>
+        <select id="calculator-pump-service" formControlName="pumpServiceId" (change)="syncSignals()">
+          @for (service of pumpServices(); track service._id) {
+            <option [value]="service._id">{{ service.name }} ({{ service.price }} {{ service.unit }})</option>
+          }
+        </select>
+        <label for="calculator-pump-hours">Количество часов:</label>
+        <input
+          id="calculator-pump-hours"
+          type="number"
+          inputmode="numeric"
+          step="1"
+          min="4"
+          formControlName="pumpHours"
+          (input)="syncSignals()"
+        />
+        <p class="delivery-note">Минимум 4 часа.</p>
+      </div>
+    }
+
     <div class="result-display">
-      <div class="res-item">К заказу: <strong>{{ volumeValue() }} м³</strong></div>
-      <div class="res-item total">Сумма: <strong>{{ totalPrice() | number:'1.0-0' }} руб.</strong></div>
+      <div class="res-item">Объем: <strong>{{ volumeValue() }} м³</strong></div>
+      <div class="res-item">Бетон: <strong>{{ totalPrice() | number:'1.0-0' }} руб.</strong></div>
+      @if (includeDelivery()) {
+        <div class="res-item">
+          Доставка: <strong>{{ deliveryCost() | number:'1.0-0' }} руб.</strong>
+        </div>
+      }
+      @if (includePump()) {
+        <div class="res-item">
+          Бетононасос: <strong>{{ pumpCost() | number:'1.0-0' }} руб.</strong>
+        </div>
+      }
+      <div class="res-item total">Итого: <strong>{{ finalTotal() | number:'1.0-0' }} руб.</strong></div>
+      <p class="calculator-final-note">Окончательная цена может измениться.</p>
       
       <app-order-button (click)="onOpenModalClick()"></app-order-button>
     </div>

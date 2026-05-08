@@ -29,7 +29,7 @@
             border-radius: 2px;
             box-shadow: 0 20px 40px rgba(45, 47, 51, 0.06);
             border: 1px solid rgba(172, 173, 177, 0.15);
-            top: 162px;
+            top: 150px;
             transform: translateY(-50%);
             transition: all 0.3s ease;
             
@@ -76,10 +76,29 @@
 }
 
 @media (max-width: 768px) {
-    swiper-container {
+    .portfolio-section swiper-container {
+        height: 360px;
+        --swiper-navigation-size: 14px;
+        --swiper-navigation-color: rgba(45, 47, 51, 0.75);
+
         &::part(button-prev),
         &::part(button-next) {
-            display: none !important;
+            display: flex !important;
+            width: 30px;
+            height: 30px;
+            top: 126px !important;
+            transform: translateY(-50%) !important;
+            background: rgba(255, 255, 255, 0.55) !important;
+            opacity: 0.72 !important;
+            border-color: rgba(172, 173, 177, 0.35) !important;
         }
+    }
+
+    .portfolio-section .work-card {
+        height: 320px;
+    }
+
+    .portfolio-section .work-card img {
+        height: 252px;
     }
 }

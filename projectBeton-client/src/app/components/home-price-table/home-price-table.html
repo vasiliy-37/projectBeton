@@ -4,14 +4,14 @@
       <h2 id="home-prices-title" class="home-prices__title">
         <span class="home-prices__title-accent">Цены</span> на бетон
       </h2>
-      <p class="home-prices__subtitle">Актуально на сегодняшний день</p>
+      <p class="home-prices__subtitle">Цена за куб бетона</p>
     </header>
 
     @if (isLoading()) {
       <p class="home-prices__state">Загружаем прайс…</p>
     } @else if (error()) {
       <p class="home-prices__state home-prices__state--error">{{ error() }}</p>
-    } @else if (brands().length === 0) {
+    } @else if (orderedBrands().length === 0) {
       <p class="home-prices__state">Прайс пока пуст.</p>
     } @else {
       <div class="home-prices__table-wrap">
@@ -22,20 +22,22 @@
           <thead>
             <tr>
               <th class="home-prices__th-brand" scope="col">Марка</th>
+              <th class="home-prices__th-class" scope="col">Класс прочности</th>
               <th class="home-prices__th-price" scope="col">Цена за м³</th>
             </tr>
           </thead>
           <tbody>
-            @for (brandItem of brands(); track brandItem._id; let i = $index) {
-              @if (i === 0 || brands()[i - 1].category !== brandItem.category) {
+            @for (brandItem of orderedBrands(); track brandItem._id; let i = $index) {
+              @if (i === 0 || orderedBrands()[i - 1].category !== brandItem.category) {
                 <tr>
-                  <th class="home-prices__category" scope="colgroup" colspan="2">
+                  <th class="home-prices__category" scope="colgroup" colspan="3">
                     {{ brandItem.category }}
                   </th>
                 </tr>
               }
               <tr>
-                <td>{{ brandItem.brand }}</td>
+                <td>{{ formatBrandMain(brandItem.brand) }}</td>
+                <td>{{ formatBrandStrengthClass(brandItem.brand) }}</td>
                 <td class="home-prices__price">
                   {{ brandItem.price ?? 0 | number: '1.0-0' }} ₽
                 </td>

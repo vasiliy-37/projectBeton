@@ -4,6 +4,12 @@ import { HttpClient } from '@angular/common/http';
 interface PhoneData {
   phoneNumber: string,
   phoneHref: string;
+  emails: string[];
+  primaryEmail: string;
+  primaryEmailHref: string;
+  address: string;
+  mapEmbedUrl: string;
+  mapEditorUrl: string;
 }
 
 @Injectable({
@@ -25,6 +31,10 @@ export class PhoneDataService {
 
   constructor() {
     // Загружаем данные при инициализации сервиса
+    this.loadPhoneData();
+  }
+
+  reloadPhoneData(): void {
     this.loadPhoneData();
   }
 

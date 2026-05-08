@@ -1,1 +1,56 @@
-<p>contacts works!</p>
+<section class="contacts-page" aria-labelledby="contacts-title">
+  <div class="contacts-page__inner">
+    <header class="contacts-page__head">
+      <h1 id="contacts-title">Контакты <span class="contacts-page__brand-accent">Бетон</span>-Строй в Иваново</h1>
+      <p>
+        Свяжитесь с отделом продаж удобным способом: по телефону или электронной почте.
+        Консультируем по выбору марки, расчету объема и доставке по Иваново и Ивановской области.
+      </p>
+    </header>
+
+    <div class="contacts-page__grid">
+      <article class="contacts-card">
+        <h2>Отдел продаж</h2>
+        <p>
+          <span>Телефон:</span>
+          <a [href]="phoneHref()">{{ phoneNumber() }}</a>
+        </p>
+
+        <div class="contacts-card__emails">
+          <span>Email:</span>
+          @if (emails().length) {
+            <ul>
+              @for (email of emails(); track email) {
+                <li><a [href]="'mailto:' + email">{{ email }}</a></li>
+              }
+            </ul>
+          } @else {
+            <p>Почта пока не указана.</p>
+          }
+        </div>
+
+        <p>
+          <span>Адрес:</span>
+          {{ address() }}
+        </p>
+
+        <div class="contacts-card__schedule">
+          <h3>График работы</h3>
+          <p>Пн–Пт: 8:00 – 19:00</p>
+          <p>Сб: 9:00 – 15:00</p>
+          <p>Вс: 9:00 – 15:00</p>
+        </div>
+      </article>
+
+      <article class="contacts-card contacts-card--map">
+        <h2>Как нас найти</h2>
+        <iframe
+          [src]="safeMapEmbedUrl()"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Карта расположения офиса Бетон-Строй"
+        ></iframe>
+      </article>
+    </div>
+  </div>
+</section>

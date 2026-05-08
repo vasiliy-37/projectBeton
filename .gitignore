@@ -141,3 +141,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 .angular/cache
+
+# Локальные выгрузки HTML для отладки
+projectBeton-client/tmp-*.html

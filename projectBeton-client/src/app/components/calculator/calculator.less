@@ -16,6 +16,13 @@ h2 {
   letter-spacing: -0.02em;
 }
 
+.calculator-subtitle {
+  margin: -6px 0 14px;
+  color: #5a5b60;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 .manual-input,
 .grade-selection,
 .result-display {
@@ -49,6 +56,39 @@ select {
   font-weight: 600;
 }
 
+input[type='checkbox'] {
+  width: auto;
+}
+
+.delivery-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.delivery-toggle input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #bb0100;
+}
+
+.delivery-toggle span {
+  font-size: 0.78rem;
+  color: #2d2f33;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.delivery-note {
+  margin: 8px 0 0;
+  color: #5a5b60;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
 input[type="number"]:focus,
 select:focus {
   outline: none;
@@ -65,11 +105,68 @@ select:focus {
   font-size: 1.1rem;
 }
 
+.calculator-final-note {
+  margin: -4px 0 10px;
+  color: #5a5b60;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 768px) {
   .calculator-container {
     margin: 0;
     max-width: none;
     width: 100%;
     padding: 14px;
+  }
+
+  h2 {
+    font-size: 1.18rem;
+    margin-bottom: 10px;
+  }
+
+  .calculator-subtitle {
+    font-size: 0.82rem;
+    margin-bottom: 10px;
+  }
+
+  .manual-input,
+  .grade-selection,
+  .result-display {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  label {
+    font-size: 0.58rem;
+    letter-spacing: 0.07em;
+  }
+
+  input[type="number"],
+  select {
+    min-height: 44px;
+    font-size: 0.95rem;
+    padding: 10px 12px;
+  }
+
+  .res-item {
+    font-size: 0.88rem;
+  }
+
+  .delivery-toggle span {
+    font-size: 0.74rem;
+  }
+
+  .delivery-note {
+    font-size: 0.74rem;
+  }
+
+  .res-item.total {
+    font-size: 1rem;
+    margin: 6px 0 10px;
+  }
+
+  .calculator-final-note {
+    font-size: 0.72rem;
   }
 }

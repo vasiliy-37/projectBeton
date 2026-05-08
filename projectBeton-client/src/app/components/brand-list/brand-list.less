@@ -1,3 +1,12 @@
+ .product-title {
+    margin: 22px 0 10px;
+    color: #bb0100;
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
 table {
     border-collapse: collapse; 
     border-spacing: 0;
@@ -28,24 +37,14 @@ thead th {
     letter-spacing: 0.5px;
 }
 
-/* ---------------------------------------------------- */
-/* 3. СТРОКА ТИПА ПРОДУКТА (Разделитель - td[colspan="2"]) */
-/* ---------------------------------------------------- */
-/* Этот селектор стилизует ячейку с названием типа (например, "Тяжелый бетон") */
-tbody tr td[colspan="2"] {
-    background-color: #444; 
-    color: #ffffff; 
-    font-size: 1.1em;
-    font-weight: 700;
-    padding: 12px 10px;
-    text-align: left;
-    // border-top: 2px solid #ff8c00; /* Акцентный разделитель */
-    // border-bottom: 1px solid #ff8c00; 
-    letter-spacing: 1px;
+thead th:last-child {
+    text-align: right;
+    padding-right: 10px;
+    transform: translateX(8px);
 }
 
 /* ---------------------------------------------------- */
-/* 4. ОСНОВНОЕ ТЕЛО ТАБЛИЦЫ (Строки с данными) */
+/* 3. ОСНОВНОЕ ТЕЛО ТАБЛИЦЫ (Строки с данными) */
 /* ---------------------------------------------------- */
 tbody tr {
     border-bottom: 1px solid #e0e0e0; 
@@ -81,7 +80,7 @@ tbody tr td:last-child {
 }
 
 /* ---------------------------------------------------- */
-/* 5. АДАПТИВНОСТЬ (МОБИЛЬНЫЕ УСТРОЙСТВА) */
+/* 4. АДАПТИВНОСТЬ (МОБИЛЬНЫЕ УСТРОЙСТВА) */
 /* ---------------------------------------------------- */
 @media (max-width: 600px) {
     table {
@@ -92,11 +91,10 @@ tbody tr td:last-child {
     thead th, tbody td {
         padding: 10px 8px;
     }
-    
-    /* Уменьшаем размер шрифта для заголовка категории */
-    tbody tr td[colspan="2"] {
-        font-size: 1em;
-        padding: 10px 8px;
+
+    thead th:last-child {
+        padding-right: 10px;
+        transform: translateX(4px);
     }
     
     /* Уменьшаем правый отступ цены */

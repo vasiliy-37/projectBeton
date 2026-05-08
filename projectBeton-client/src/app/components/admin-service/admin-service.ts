@@ -10,6 +10,8 @@ type ServiceUnit = typeof ALLOWED_UNITS[number];
 
 export interface ServiceItem {
   _id: string; 
+  category: string;
+  groupSubtitle: string;
   name: string;
   price: number;
   unit: ServiceUnit;
@@ -32,7 +34,7 @@ export class AdminService implements OnInit {
   isLoading = signal(true);
   error = signal<string | null>(null);
   
-  newService = signal<Omit<ServiceItem, '_id'| 'isSaving'| 'isEditing'>>({ name: '', price: 0, unit: 'руб.'});
+  newService = signal<Omit<ServiceItem, '_id'| 'isSaving'| 'isEditing'>>({ category: '', groupSubtitle: '', name: '', price: 0, unit: 'руб.'});
   isCreating = signal(false);
   createError = signal<string | null>(null);
 
@@ -41,7 +43,7 @@ export class AdminService implements OnInit {
   private http = inject(HttpClient);
 
   isNewServiceValid = computed(() => 
-    !!this.newService().name && this.newService().price > 0
+    !!this.newService().category && !!this.newService().name && this.newService().price >= 0
   );
   
   ngOnInit(): void {
@@ -57,6 +59,8 @@ export class AdminService implements OnInit {
       const data = await firstValueFrom(this.http.get<ServiceItem[]>(this.apiUrl));
       this.services.set(data.map(s => ({ 
         ...s,
+        category: s.category || 'Общие услуги',
+        groupSubtitle: s.groupSubtitle || '',
         unit: s.unit || 'руб.',
         isSaving: false,
         isEditing: false 
@@ -83,7 +87,7 @@ export class AdminService implements OnInit {
         ...services, 
         { ...service, isSaving: false, isEditing: false }
       ]);
-      this.newService.set({ name: '', price: 0, unit: 'руб.'}); 
+      this.newService.set({ category: '', groupSubtitle: '', name: '', price: 0, unit: 'руб.'}); 
     } catch (err: any) {
       this.createError.set(`Ошибка при создании услуги: ${err.message}`);
     } finally {
@@ -97,7 +101,13 @@ export class AdminService implements OnInit {
     this.setServiceState(service._id, { isSaving: true });
 
     try {
-      const body = { name: service.name, price: service.price, unit: service.unit };
+      const body = {
+        category: service.category,
+        groupSubtitle: service.groupSubtitle,
+        name: service.name,
+        price: service.price,
+        unit: service.unit
+      };
       await firstValueFrom(this.http.put<ServiceItem>(`${this.apiUrl}/${service._id}`, body));
       
       this.setServiceState(service._id, { isSaving: false, isEditing: false });
@@ -139,6 +149,8 @@ export class AdminService implements OnInit {
   }
 
   // Методы обновления полей формы (оставляем как есть или переводим на прямое обновление в HTML)
+  onNewServiceCategoryChange(category: string) { this.newService.update(s => ({ ...s, category })); }
+  onNewServiceGroupSubtitleChange(groupSubtitle: string) { this.newService.update(s => ({ ...s, groupSubtitle })); }
   onNewServiceNameChange(name: string) { this.newService.update(s => ({ ...s, name })); }
   onNewServicePriceChange(price: number) {
     const num = typeof price === 'string' ? parseFloat(price) : price;

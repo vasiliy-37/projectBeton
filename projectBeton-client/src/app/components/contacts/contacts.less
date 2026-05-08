@@ -1,0 +1,132 @@
+.contacts-page {
+  padding: 42px 0 54px;
+  background: #f6f6fb;
+}
+
+.contacts-page__inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.contacts-page__head {
+  margin-bottom: 20px;
+}
+
+.contacts-page__head h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.8rem, 3.6vw, 2.7rem);
+  line-height: 1.1;
+  color: #2d2f33;
+}
+
+.contacts-page__brand-accent {
+  color: #bb0100;
+}
+
+.contacts-page__head p {
+  margin: 0;
+  max-width: 860px;
+  color: #5a5b60;
+  line-height: 1.65;
+}
+
+.contacts-page__grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  gap: 16px;
+}
+
+.contacts-card {
+  background: #fff;
+  border: 1px solid #e6e6ec;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.contacts-card h2 {
+  margin: 0 0 14px;
+  color: #2d2f33;
+  font-size: 1.1rem;
+}
+
+.contacts-card p {
+  margin: 0 0 10px;
+  color: #5a5b60;
+  line-height: 1.55;
+}
+
+.contacts-card span {
+  color: #2d2f33;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.contacts-card a {
+  color: #bb0100;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.contacts-card a:hover {
+  text-decoration: underline;
+}
+
+.contacts-card__emails ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.contacts-card__emails li {
+  margin-bottom: 6px;
+}
+
+.contacts-card__emails p {
+  margin: 8px 0 0;
+}
+
+.contacts-card__coords {
+  margin-top: 14px;
+  font-size: 0.92rem;
+}
+
+.contacts-card__schedule {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e6e6ec;
+}
+
+.contacts-card__schedule h3 {
+  margin: 0 0 8px;
+  color: #2d2f33;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.contacts-card--map iframe {
+  width: 100%;
+  min-height: 380px;
+  border: 0;
+  border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+  .contacts-page__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .contacts-page {
+    padding: 32px 0 40px;
+  }
+
+  .contacts-page__inner {
+    padding: 0 14px;
+  }
+
+  .contacts-card--map iframe {
+    min-height: 300px;
+  }
+}

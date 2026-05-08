@@ -11,6 +11,17 @@ interface OrderData {
   phone: string;
   quantity: number;
   brand: string;
+  concreteCost?: number;
+  includeDelivery?: boolean;
+  deliveryCityName?: string;
+  deliveryCityPricePerM3?: number;
+  deliveryBillableVolume?: number;
+  deliveryCost?: number;
+  includePump?: boolean;
+  pumpServiceName?: string;
+  pumpHours?: number;
+  pumpCost?: number;
+  finalTotal?: number;
 }
 
 // Интерфейс для ответа (предполагаем, что бэкенд возвращает статус)

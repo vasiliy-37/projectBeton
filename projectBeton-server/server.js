@@ -3,10 +3,6 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 
-const http = require('http');
-const { Server } = require('socket.io');
-const chatController = require('./controllers/chatController.js')
-
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -14,7 +10,6 @@ const cors = require('cors')
 const nodemailer = require('nodemailer')
 
 const app = express();
-const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
 
@@ -22,20 +17,58 @@ const Product = require('./models/product');
 const sandBrands = require('./models/sandBrands');
 const Service = require('./models/Service');
 const Contact = require('./models/contacts.js');
+const DeliveryCity = require('./models/DeliveryCity');
 const DB_URL = 'mongodb://localhost:27017/projectBeton';
 const User = require('./models/User.js');
 const JWT_SECRET = '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8258d5f39aee4cfb35dc007c77255730306c8ae0bdb049d6dd80246a06e986566b24a';
-const ChatSession = require('./models/ChatSession.js');
 const Work = require('./models/Work');
 
-const io = new Server(server, {
-    cors: {
-        // localhost и доступ по IP (ng serve --configuration lan, телефон в той же сети)
-        origin: true,
-        methods: ['GET', 'POST'],
-        credentials: true,
-    },
-});
+const DEFAULT_DELIVERY_CITIES = [
+    { slug: 'ivanovo', name: 'Иваново', cityPrepositional: 'Иваново', district: 'Ивановской области' },
+    { slug: 'shuya', name: 'Шуя', cityPrepositional: 'Шуе', district: 'Шуйскому району' },
+    { slug: 'vichuga', name: 'Вичуга', cityPrepositional: 'Вичуге', district: 'Вичугскому району' },
+    { slug: 'furmanov', name: 'Фурманов', cityPrepositional: 'Фурманове', district: 'Фурмановскому району' },
+    { slug: 'teykovo', name: 'Тейково', cityPrepositional: 'Тейкове', district: 'Тейковскому району' },
+    { slug: 'kokhma', name: 'Кохма', cityPrepositional: 'Кохме', district: 'Ивановскому району' },
+    { slug: 'rodniki', name: 'Родники', cityPrepositional: 'Родниках', district: 'Родниковскому району' },
+    { slug: 'privolzhsk', name: 'Приволжск', cityPrepositional: 'Приволжске', district: 'Приволжскому району' },
+    { slug: 'yuzha', name: 'Южа', cityPrepositional: 'Юже', district: 'Южскому району' },
+    { slug: 'komsomolsk', name: 'Комсомольск', cityPrepositional: 'Комсомольске', district: 'Комсомольскому району' },
+    { slug: 'gavrilov-posad', name: 'Гаврилов Посад', cityPrepositional: 'Гавриловом Посаде', district: 'Гаврилово-Посадскому району' },
+    { slug: 'ples', name: 'Плёс', cityPrepositional: 'Плёсе', district: 'Приволжскому району' }
+];
+
+async function ensureDeliveryCitiesSeeded() {
+    try {
+        for (const city of DEFAULT_DELIVERY_CITIES) {
+            await DeliveryCity.updateOne(
+                { slug: city.slug },
+                {
+                    $setOnInsert: {
+                        pricePerM3: 0,
+                        isActive: true
+                    },
+                    $set: {
+                        name: city.name,
+                        cityPrepositional: city.cityPrepositional,
+                        district: city.district
+                    }
+                },
+                { upsert: true }
+            );
+        }
+    } catch (error) {
+        console.error('Ошибка инициализации городов доставки:', error);
+    }
+}
+
+function normalizeSlug(value = '') {
+    return String(value)
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+}
 
 const authenticateToken = (req, res, next) => {
     const token = req.cookies.admin_auth_token; // <-- ЧИТАЕМ ИЗ КУКИ
@@ -54,7 +87,10 @@ const authenticateToken = (req, res, next) => {
 };
 
 mongoose.connect(DB_URL)
-    .then(() => console.log('MongoDB successfully connected locally'))
+    .then(async () => {
+        console.log('MongoDB successfully connected locally');
+        await ensureDeliveryCitiesSeeded();
+    })
     .catch(err => console.error('MongoDB connection error:', err));
 
 const Brand = require('./models/product');
@@ -69,6 +105,22 @@ const corsOptions = {
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
+
+/**
+ * Этот процесс — только API (:3000). Любой GET/HEAD не под /api иначе даёт Express "Cannot GET".
+ * Сразу пересылаем на SSR/фронт (:4000). В проде: FRONTEND_URL=https://ваш-домен.ru
+ */
+app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+        return next();
+    }
+    if (req.path.startsWith('/api')) {
+        return next();
+    }
+    const frontendBase = (process.env.FRONTEND_URL || 'http://localhost:4000').replace(/\/$/, '');
+    const suffix = req.originalUrl || '/';
+    return res.redirect(302, `${frontendBase}${suffix}`);
+});
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com', // Используйте ваш SMTP-сервер
@@ -89,89 +141,10 @@ transporter.verify(function (error, success) {
     }
 });
 
-// --- ЛОГИКА СОКЕТОВ ---
-io.on('connection', (socket) => {
-    console.log('Новое подключение:', socket.id);
-
-    // 1. Вход в комнату (для гостя или админа, чтобы получать сообщения)
-    socket.on('join_chat', async (guestId) => {
-        socket.join(guestId);
-        const existingChat = await chatController.getChatByGuestId(guestId);
-        if (existingChat) {
-            socket.emit('chat_history', existingChat.messages);
-        }
-    });
-
-    // 2. ЗАПРОС СПИСКА ЧАТОВ (Для админки)
-    // Теперь это работает независимо и четко
-    socket.on('admin_get_all_chats', async () => {
-        const chats = await chatController.getAllActiveChats();
-        socket.emit('admin_chat_list', chats);
-    });
-
-    // 3. Админ заходит в конкретный чат
-    socket.on('admin_join_guest_chat', async (guestId) => {
-        socket.join(guestId); // Подписываемся на сообщения этого гостя
-        const existingChat = await chatController.getChatByGuestId(guestId);
-        if (existingChat) {
-            socket.emit('chat_history', existingChat.messages);
-        }
-    });
-
-    // 4. Получение и рассылка сообщений
-    socket.on('send_message', async (data) => {
-        const { guestId, text, sender } = data;
-
-        const newMessage = {
-            text: text,
-            sender: sender || 'user',
-            timestamp: new Date(),
-            read: sender === 'admin' ? true : false
-        };
-
-        try {
-            await chatController.saveMessage(guestId, newMessage);
-
-            // Рассылаем сообщение всем в комнате guestId
-            io.to(guestId).emit('receive_message', newMessage);
-
-            // Если написал юзер — обновляем список чатов у админа (чтобы счетчик тикнул)
-            if (sender !== 'admin') {
-                const allChats = await chatController.getAllActiveChats();
-                io.emit('admin_chat_list', allChats);
-            }
-        } catch (err) {
-            console.error("Ошибка сохранения сообщения:", err);
-        }
-    });
-
-    // 5. Пометка как прочитано
-    socket.on('admin_mark_as_read', async (guestId) => {
-        try {
-            await ChatSession.updateOne(
-                { guestId: guestId },
-                { $set: { "messages.$[msg].read": true } },
-                {
-                    arrayFilters: [{ "msg.sender": "user", "msg.read": { $ne: true } }],
-                    multi: true
-                }
-            );
-
-            // СРАЗУ после обновления базы рассылаем свежий список чатов
-            // Это уберет "воскресающие" цифры
-            const allChats = await chatController.getAllActiveChats();
-            io.emit('admin_chat_list', allChats);
-
-        } catch (err) {
-            console.error("Ошибка при обновлении статуса прочитано:", err);
-        }
-    });
-});
-
 // 1. GET /api/services - Получить все услуги (существующий маршрут)
 // Дублирующий маршрут в конце файла удален.
 app.get('/api/services', (req, res) => {
-    Service.find().sort({ name: 1 })
+    Service.find().sort({ category: 1, name: 1 })
         .then(services => res.json(services))
         .catch(err => {
             console.error('Ошибка при получении услуг:', err);
@@ -182,16 +155,18 @@ app.get('/api/services', (req, res) => {
 // 2. POST /api/services - Создать новую услугу
 app.post('/api/services', authenticateToken, (req, res) => {
     // Деструктуризация для получения нового поля unit
-    const { name, price, unit } = req.body;
+    const { category, groupSubtitle, name, price, unit } = req.body;
+    const normalizedCategory = String(category || '').trim();
+    const normalizedGroupSubtitle = String(groupSubtitle || '').trim();
 
     // ВАЛИДАЦИЯ: Проверяем наличие unit, а также имя и цену.
     // Если price в схеме Mongoose изменен на Number, проверяем его тип.
-    if (!name || typeof price !== 'number' || price <= 0 || !unit || typeof unit !== 'string') {
-        return res.status(400).json({ error: 'Требуется непустое название, положительная цена (число) и единица измерения (строка) для создания услуги.' });
+    if (!normalizedCategory || !name || typeof price !== 'number' || price < 0 || !unit || typeof unit !== 'string') {
+        return res.status(400).json({ error: 'Требуется группа, непустое название, цена (число не меньше 0) и единица измерения (строка) для создания услуги.' });
     }
 
     // Создаем новый объект, включая unit
-    const newService = new Service({ name, price, unit });
+    const newService = new Service({ category: normalizedCategory, groupSubtitle: normalizedGroupSubtitle, name, price, unit });
 
     newService.save()
         .then(service => res.status(201).json(service))
@@ -206,15 +181,17 @@ app.post('/api/services', authenticateToken, (req, res) => {
 app.put('/api/services/:id', authenticateToken, (req, res) => {
     const id = req.params.id;
     // Деструктуризация для получения нового поля unit
-    const { name, price, unit } = req.body;
+    const { category, groupSubtitle, name, price, unit } = req.body;
+    const normalizedCategory = String(category || '').trim();
+    const normalizedGroupSubtitle = String(groupSubtitle || '').trim();
 
     // ВАЛИДАЦИЯ: Проверяем наличие unit, а также имя и цену.
-    if (!name || typeof price !== 'number' || price <= 0 || !unit || typeof unit !== 'string') {
-        return res.status(400).json({ error: 'Требуется непустое название, положительная цена (число) и единица измерения (строка) для обновления услуги.' });
+    if (!normalizedCategory || !name || typeof price !== 'number' || price < 0 || !unit || typeof unit !== 'string') {
+        return res.status(400).json({ error: 'Требуется группа, непустое название, цена (число не меньше 0) и единица измерения (строка) для обновления услуги.' });
     }
 
     // Объект для обновления, включает name, price и unit
-    const updateData = { name, price, unit };
+    const updateData = { category: normalizedCategory, groupSubtitle: normalizedGroupSubtitle, name, price, unit };
 
     Service.findByIdAndUpdate(
         id,
@@ -286,37 +263,131 @@ app.delete('/api/brands/:id', authenticateToken, (req, res) => {
 
 // Удален дублирующий GET /api/services
 
+const DEFAULT_CONTACT_ADDRESS = '141009, г. Иваново, ул. Бетонная, 5';
+const DEFAULT_MAP_EMBED_URL = 'https://www.openstreetmap.org/export/embed.html?bbox=40.831230%2C56.988438%2C40.931230%2C57.028438&layer=mapnik&marker=57.008438%2C40.881230';
+const MAP_EDITOR_URL = 'https://www.openstreetmap.org/?mlat=57.008438&mlon=40.881230#map=14/57.008438/40.881230';
+
 app.get('/api/get-phone-number', (req, res) => {
-    // Вместо await Contact.findOne({}), используем Contact.findOne({}) без await
-    Contact.findOne({}).then(mainContact => {
-        if (mainContact && mainContact.phoneNumber) {
-            res.json({
-                phoneNumber: mainContact.phoneNumber, // Используем phoneNumber из БД
-                phoneHref: `tel:${mainContact.phoneNumber.replace(/\s/g, '')}`
-            });
-        } else {
-            res.status(404).json({ error: 'Phone number not found in DB.' });
+    Contact.findOne({ type: 'main' }).then(mainContact => {
+        if (!mainContact) {
+            return res.status(404).json({ error: 'Contacts not found in DB.' });
         }
+
+        const normalizedPhone = (mainContact.phoneNumber || '').trim();
+        const sanitizedPhoneHref = normalizedPhone ? `tel:${normalizedPhone.replace(/[^\d+]/g, '')}` : '#';
+        const emails = Array.isArray(mainContact.emails) ? mainContact.emails : [];
+        const primaryEmail = emails[0] || '';
+        const address = (mainContact.address || '').trim() || DEFAULT_CONTACT_ADDRESS;
+        const mapEmbedUrl = (mainContact.mapEmbedUrl || '').trim() || DEFAULT_MAP_EMBED_URL;
+
+        res.json({
+            phoneNumber: normalizedPhone || 'Номер недоступен',
+            phoneHref: sanitizedPhoneHref,
+            emails,
+            primaryEmail,
+            primaryEmailHref: primaryEmail ? `mailto:${primaryEmail}` : '#',
+            address,
+            mapEmbedUrl,
+            mapEditorUrl: MAP_EDITOR_URL
+        });
     }).catch(err => {
         console.error(err);
-        res.status(500).json({ error: 'Internal server error while fetching phone number.' });
+        res.status(500).json({ error: 'Internal server error while fetching contacts.' });
     });
 });
 
 app.post('/api/set-phone-number', (req, res) => {
-    const { phoneNumber } = req.body;
+    const { phoneNumber, address, mapEmbedUrl } = req.body;
+    const normalizedPhone = (phoneNumber || '').trim();
+    const phoneHref = normalizedPhone ? `tel:${normalizedPhone.replace(/[^\d+]/g, '')}` : '#';
+    const normalizedAddress = String(address || '').trim();
+    const normalizedMapEmbedUrl = String(mapEmbedUrl || '').trim();
 
-    // Update the phone number in the database
-    Contact.findOneAndUpdate({}, { phoneNumber }, { new: true, upsert: true })
+    Contact.findOneAndUpdate(
+        { type: 'main' },
+        {
+            phoneNumber: normalizedPhone,
+            phoneHref,
+            address: normalizedAddress,
+            mapEmbedUrl: normalizedMapEmbedUrl,
+            $setOnInsert: { type: 'main' }
+        },
+        { new: true, upsert: true }
+    )
         .then(updatedContact => {
             res.json({
                 message: 'Phone number updated successfully.',
-                phoneNumber: updatedContact.phoneNumber
+                phoneNumber: updatedContact.phoneNumber,
+                phoneHref: updatedContact.phoneHref,
+                address: updatedContact.address || '',
+                mapEmbedUrl: updatedContact.mapEmbedUrl || ''
             });
         })
         .catch(err => {
             console.error(err);
             res.status(500).json({ error: 'Internal server error while updating phone number.' });
+        });
+});
+
+app.post('/api/add-contact-email', (req, res) => {
+    const normalizedEmail = String(req.body?.email || '').trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({ error: 'Укажите корректный email.' });
+    }
+
+    Contact.findOneAndUpdate(
+        { type: 'main' },
+        {
+            $addToSet: { emails: normalizedEmail },
+            $setOnInsert: {
+                type: 'main',
+                phoneNumber: '',
+                phoneHref: '#',
+                address: DEFAULT_CONTACT_ADDRESS,
+                mapEmbedUrl: DEFAULT_MAP_EMBED_URL
+            }
+        },
+        { new: true, upsert: true }
+    )
+        .then(updatedContact => {
+            res.json({
+                message: 'Email added successfully.',
+                emails: updatedContact.emails || []
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({ error: 'Internal server error while adding email.' });
+        });
+});
+
+app.post('/api/delete-contact-email', (req, res) => {
+    const normalizedEmail = String(req.body?.email || '').trim().toLowerCase();
+
+    if (!normalizedEmail) {
+        return res.status(400).json({ error: 'Email для удаления не указан.' });
+    }
+
+    Contact.findOneAndUpdate(
+        { type: 'main' },
+        { $pull: { emails: normalizedEmail } },
+        { new: true }
+    )
+        .then(updatedContact => {
+            if (!updatedContact) {
+                return res.status(404).json({ error: 'Контакты не найдены.' });
+            }
+
+            res.json({
+                message: 'Email deleted successfully.',
+                emails: updatedContact.emails || []
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500).json({ error: 'Internal server error while deleting email.' });
         });
 });
 
@@ -414,7 +485,23 @@ app.post('/api/logout', (req, res) => {
 
 app.post('/api/send-order', async (req, res) => {
     // Деструктуризация данных, пришедших из Angular (имя, телефон, количество, марка)
-    const { name, phone, quantity, brand } = req.body;
+    const {
+        name,
+        phone,
+        quantity,
+        brand,
+        concreteCost = 0,
+        includeDelivery = false,
+        deliveryCityName = '',
+        deliveryCityPricePerM3 = 0,
+        deliveryBillableVolume = 0,
+        deliveryCost = 0,
+        includePump = false,
+        pumpServiceName = '',
+        pumpHours = 0,
+        pumpCost = 0,
+        finalTotal = 0
+    } = req.body;
 
     // Базовая валидация
     if (!name || !phone || !quantity || !brand) {
@@ -432,6 +519,10 @@ app.post('/api/send-order', async (req, res) => {
             <hr>
             <p><b>Марка бетона:</b> ${brand}</p>
             <p><b>Количество:</b> ${quantity} м³</p>
+            <p><b>Бетон:</b> ${concreteCost} руб.</p>
+            ${includeDelivery ? `<p><b>Доставка:</b> ${deliveryCost} руб. (${deliveryCityName}, ${deliveryCityPricePerM3} руб/м³, расчетный объем ${deliveryBillableVolume} м³)</p>` : ''}
+            ${includePump ? `<p><b>Бетононасос:</b> ${pumpCost} руб. (${pumpServiceName}, ${pumpHours} ч)</p>` : ''}
+            <p><b>Итого:</b> ${finalTotal} руб.</p>
         `
     };
 
@@ -491,6 +582,118 @@ app.get('/api/works', (req, res) => {
         .catch(err => res.status(500).json({ error: 'Ошибка загрузки галереи' }));
 });
 
+app.get('/api/delivery-cities', (req, res) => {
+    DeliveryCity.find({ isActive: true })
+        .sort({ name: 1 })
+        .select('slug name cityPrepositional district pricePerM3 isActive')
+        .then(cities => res.json(cities))
+        .catch(err => {
+            console.error('Ошибка при получении городов доставки:', err);
+            res.status(500).json({ error: 'Ошибка загрузки городов доставки' });
+        });
+});
+
+app.get('/api/admin/delivery-cities', authenticateToken, (req, res) => {
+    DeliveryCity.find()
+        .sort({ name: 1 })
+        .select('slug name cityPrepositional district pricePerM3 isActive')
+        .then(cities => res.json(cities))
+        .catch(err => {
+            console.error('Ошибка при получении городов доставки (админка):', err);
+            res.status(500).json({ error: 'Ошибка загрузки городов доставки' });
+        });
+});
+
+app.post('/api/admin/delivery-cities', authenticateToken, async (req, res) => {
+    try {
+        const name = String(req.body?.name || '').trim();
+        const slugInput = String(req.body?.slug || '').trim();
+        const cityPrepositional = String(req.body?.cityPrepositional || '').trim();
+        const district = String(req.body?.district || '').trim();
+        const pricePerM3 = Number(req.body?.pricePerM3 ?? 0);
+        const slug = normalizeSlug(slugInput);
+
+        if (!name || !slug || !cityPrepositional || !district) {
+            return res.status(400).json({ error: 'Заполните название, slug, форму города и район.' });
+        }
+        if (!Number.isFinite(pricePerM3) || pricePerM3 < 0) {
+            return res.status(400).json({ error: 'Цена за м3 должна быть числом не меньше 0.' });
+        }
+
+        const existing = await DeliveryCity.findOne({ slug });
+        if (existing) {
+            return res.status(409).json({ error: 'Город с таким slug уже существует.' });
+        }
+
+        const created = await DeliveryCity.create({
+            slug,
+            name,
+            cityPrepositional,
+            district,
+            pricePerM3,
+            isActive: true
+        });
+
+        res.status(201).json(created);
+    } catch (err) {
+        console.error('Ошибка при создании города доставки:', err);
+        res.status(500).json({ error: 'Ошибка сохранения города доставки' });
+    }
+});
+
+app.put('/api/admin/delivery-cities/:id', authenticateToken, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const name = String(req.body?.name || '').trim();
+        const slugInput = String(req.body?.slug || '').trim();
+        const cityPrepositional = String(req.body?.cityPrepositional || '').trim();
+        const district = String(req.body?.district || '').trim();
+        const pricePerM3 = Number(req.body?.pricePerM3 ?? 0);
+        const isActive = Boolean(req.body?.isActive);
+        const slug = normalizeSlug(slugInput);
+
+        if (!name || !slug || !cityPrepositional || !district) {
+            return res.status(400).json({ error: 'Заполните название, slug, форму города и район.' });
+        }
+        if (!Number.isFinite(pricePerM3) || pricePerM3 < 0) {
+            return res.status(400).json({ error: 'Цена за м3 должна быть числом не меньше 0.' });
+        }
+
+        const duplicate = await DeliveryCity.findOne({ slug, _id: { $ne: id } });
+        if (duplicate) {
+            return res.status(409).json({ error: 'Город с таким slug уже существует.' });
+        }
+
+        const updated = await DeliveryCity.findByIdAndUpdate(
+            id,
+            { name, slug, cityPrepositional, district, pricePerM3, isActive },
+            { new: true, runValidators: true }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ error: 'Город не найден.' });
+        }
+
+        res.json(updated);
+    } catch (err) {
+        console.error('Ошибка при обновлении города доставки:', err);
+        res.status(500).json({ error: 'Ошибка обновления города доставки' });
+    }
+});
+
+app.delete('/api/admin/delivery-cities/:id', authenticateToken, async (req, res) => {
+    try {
+        const deleted = await DeliveryCity.findByIdAndDelete(req.params.id);
+        if (!deleted) {
+            return res.status(404).json({ error: 'Город не найден.' });
+        }
+        res.status(204).send();
+    } catch (err) {
+        console.error('Ошибка при удалении города доставки:', err);
+        res.status(500).json({ error: 'Ошибка удаления города доставки' });
+    }
+});
+
 // 2. Добавить новую работу (защищено токеном)
 app.post('/api/works', authenticateToken, (req, res) => {
     const { title, imageData } = req.body;
@@ -512,7 +715,6 @@ app.delete('/api/works/:id', authenticateToken, (req, res) => {
         .catch(err => res.status(500).json({ error: 'Ошибка удаления' }));
 });
 
-
-server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, () => {
+    console.log(`API: http://localhost:${PORT} (только /api/*). Сайт: ${process.env.FRONTEND_URL || 'http://localhost:4000'}`);
 });

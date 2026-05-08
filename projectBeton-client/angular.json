@@ -31,7 +31,12 @@
             ],
             "styles": [
               "src/app/app.less"
-            ]
+            ],
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "ssr": {
+              "entry": "src/server.ts"
+            }
           },
           "configurations": {
             "production": {

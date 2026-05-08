@@ -1,40 +1,80 @@
 import { Routes } from '@angular/router';
 import { Home } from './components/home/home';
-import { Price } from './components/price/price';
-import { Services } from './components/services/services';
-import { Contacts } from './components/contacts/contacts';
-import { AdminContacts } from './components/admin-contacts/admin.component';
-import { AdminPrice } from './components/admin-price/admin-price';
-import { AdminService } from './components/admin-service/admin-service';
-import { AdminLayout } from './components/admin-layout/admin-layout';
-import { LoginComponent } from './components/login/login';
 import { AuthGuard } from './auth-guard';
-import { AdminChatsComponent } from './components/admin-chats/admin-chats';
-import { AdminWorks } from './components/admin-works/admin-works';
-import { Useful } from './components/useful/useful';
 
 export const routes: Routes = [
-    { path: '', component: Home, title: 'Главная' },
-    { path: 'price', component: Price, title: 'Прайс-лист' },
-    { path: 'services', component: Services, title: 'Услуги' },
-    { path: 'useful', component: Useful, title: 'Как выбрать марку бетона: таблица и советы' },
-    { path: 'contacts', component: Contacts, title: 'Контакты' },
+  {
+    path: '',
+    component: Home,
+    title: 'Купить бетон в Иваново и области — доставка с завода | ProjectBeton'
+  },
 
-    { path: 'login', component: LoginComponent, title: 'Вход Администратора' },
+  {
+    path: 'price',
+    loadComponent: () => import('./components/price/price').then((m) => m.Price),
+    title: 'Цены на бетон в Иваново - стоимость за 1 м3 | ProjectBeton'
+  },
+  {
+    path: 'services',
+    loadComponent: () => import('./components/services/services').then((m) => m.Services),
+    title: 'Доставка бетона и услуги бетононасоса в Иваново | ProjectBeton'
+  },
+  {
+    path: 'useful',
+    loadComponent: () => import('./components/useful/useful').then((m) => m.Useful),
+    title: 'Полезное: марки бетона, уход после заливки, приёмка | ProjectBeton'
+  },
+  {
+    path: 'beton-v/:city',
+    loadComponent: () => import('./components/city-landing/city-landing').then((m) => m.CityLanding),
+    title: 'Бетон с доставкой по Ивановской области'
+  },
+  {
+    path: 'contacts',
+    loadComponent: () => import('./components/contacts/contacts').then((m) => m.Contacts),
+    title: 'Контакты ProjectBeton в Иваново | Телефон, адрес, email'
+  },
 
-    { 
-        path: 'admin',                  
-        component: AdminLayout, 
-        canActivate: [AuthGuard],
-        children: [                     
-            { path: 'price', component: AdminPrice, title: 'Админка-Прайса'}, 
-            { path: 'service', component: AdminService, title: 'Админка-Услуги'}, 
-            { path: 'contacts', component: AdminContacts, title: 'Админка' },
-            { path: 'chats', component: AdminChatsComponent, title: 'Чаты' },
-            { path: 'fotoedit', component: AdminWorks, title: 'Редактор Фото' },
-            { path: '', redirectTo: 'contacts', pathMatch: 'full' }
-        ]
-    },
-    
-    { path: '**', redirectTo: '' }
+  {
+    path: 'login',
+    loadComponent: () => import('./components/login/login').then((m) => m.LoginComponent),
+    title: 'Вход Администратора'
+  },
+
+  {
+    path: 'admin',
+    loadComponent: () => import('./components/admin-layout/admin-layout').then((m) => m.AdminLayout),
+    canActivate: [AuthGuard],
+    children: [
+      {
+        path: 'price',
+        loadComponent: () => import('./components/admin-price/admin-price').then((m) => m.AdminPrice),
+        title: 'Админка-Прайса'
+      },
+      {
+        path: 'service',
+        loadComponent: () => import('./components/admin-service/admin-service').then((m) => m.AdminService),
+        title: 'Админка-Услуги'
+      },
+      {
+        path: 'contacts',
+        loadComponent: () => import('./components/admin-contacts/admin.component').then((m) => m.AdminContacts),
+        title: 'Админка'
+      },
+      {
+        path: 'delivery-cities',
+        loadComponent: () =>
+          import('./components/admin-delivery-cities/admin-delivery-cities').then((m) => m.AdminDeliveryCities),
+        title: 'Админка - Города доставки'
+      },
+      {
+        path: 'fotoedit',
+        loadComponent: () => import('./components/admin-works/admin-works').then((m) => m.AdminWorks),
+        title: 'Редактор Фото'
+      },
+      { path: '', redirectTo: 'contacts', pathMatch: 'full' }
+    ]
+  },
+
+  { path: '**', redirectTo: '' }
 ];

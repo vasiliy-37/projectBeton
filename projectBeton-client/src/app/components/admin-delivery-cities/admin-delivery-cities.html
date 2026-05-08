@@ -1,0 +1,43 @@
+<section class="admin-delivery">
+  <h2>Города доставки</h2>
+
+  <form class="admin-delivery__create" (ngSubmit)="createCity()">
+    <h3>Добавить город</h3>
+    <div class="admin-delivery__grid">
+      <input type="text" name="name" [(ngModel)]="draft.name" placeholder="Название (например, Иваново)" required />
+      <input
+        type="number"
+        name="pricePerM3"
+        [(ngModel)]="draft.pricePerM3"
+        placeholder="Цена за м³"
+        min="0"
+        step="1"
+        required
+      />
+    </div>
+    <button type="submit" [disabled]="isSaving">Добавить город</button>
+  </form>
+
+  <div class="admin-delivery__list" *ngIf="cities.length; else emptyState">
+    <article class="admin-delivery__card" *ngFor="let city of cities">
+      <div class="admin-delivery__grid">
+        <input type="text" [(ngModel)]="city.name" [ngModelOptions]="{ standalone: true }" />
+        <input
+          type="number"
+          [(ngModel)]="city.pricePerM3"
+          [ngModelOptions]="{ standalone: true }"
+          min="0"
+          step="1"
+        />
+      </div>
+      <div class="admin-delivery__actions">
+        <button type="button" (click)="saveCity(city)">Сохранить</button>
+        <button type="button" class="admin-delivery__delete" (click)="deleteCity(city)">Удалить</button>
+      </div>
+    </article>
+  </div>
+
+  <ng-template #emptyState>
+    <p class="admin-delivery__empty">Список городов пуст.</p>
+  </ng-template>
+</section>

@@ -1,0 +1,54 @@
+<section class="city-landing">
+  <div class="city-landing__inner">
+    @if (currentCity(); as city) {
+      <header class="city-landing__head">
+        <h1>Бетон с доставкой в {{ city.cityPrepositional }}</h1>
+        <p>
+          Поставляем товарный бетон в {{ city.cityPrepositional }} и по {{ city.district }} напрямую с завода.
+          Подбираем марку под задачу, согласовываем удобное время доставки и помогаем с расчетом объема.
+        </p>
+      </header>
+
+      <div class="city-landing__grid">
+        <article class="city-landing__card">
+          <h2>Что входит в поставку</h2>
+          <ul>
+            <li>Товарный бетон популярных марок для фундамента, плит и монолита.</li>
+            <li>Доставка миксерами по городу и ближайшим населенным пунктам.</li>
+            <li>Подбор дополнительной техники: бетононасос, удлиненные лотки, вибратор.</li>
+          </ul>
+        </article>
+
+        <article class="city-landing__card">
+          <h2>Почему удобно заказывать у нас</h2>
+          <ul>
+            <li>Собственное производство и контроль качества в лаборатории.</li>
+            <li>Прозрачный расчет цены: бетон, доставка и допуслуги.</li>
+            <li>Консультация по выбору марки и объема под ваш объект.</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="city-landing__cta">
+        Нужен расчет под объект в {{ city.cityPrepositional }}? Оставьте заявку, и менеджер подберет
+        марку бетона и оптимальный формат доставки.
+      </p>
+    } @else {
+      <header class="city-landing__head">
+        <h1>Город не найден</h1>
+        <p>Похоже, по этому адресу пока нет страницы. Выберите город из списка ниже.</p>
+      </header>
+    }
+
+    <section class="city-landing__cities" aria-labelledby="cities-list-title">
+      <h2 id="cities-list-title">Города, в которые доставляем бетон</h2>
+      <ul>
+        @for (city of cities; track city.slug) {
+          <li>
+            <a [routerLink]="['/beton-v', city.slug]">Бетон в {{ city.city }}</a>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+</section>

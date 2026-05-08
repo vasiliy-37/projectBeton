@@ -1,6 +1,32 @@
 /* ---------------------------------------------------- */
 /* 1. ОБЩИЕ СТИЛИ ТАБЛИЦЫ: table И .table */
 /* ---------------------------------------------------- */
+.service-group-title {
+    margin: 22px 0 10px;
+    color: #bb0100;
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.service-group-subtitle {
+    margin: -4px 0 10px;
+    color: #5a5b60;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.service-price-note {
+    margin: 14px 0 0;
+    color: #2d2f33;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
 /* Применяем к обеим таблицам через запятую */
 table, .table {
     border-collapse: collapse; 
@@ -30,6 +56,12 @@ table thead th, .table thead th {
     text-transform: uppercase;
     font-size: 0.9em;
     letter-spacing: 0.5px;
+}
+
+table thead th:last-child, .table thead th:last-child {
+    text-align: right;
+    padding-right: 10px;
+    transform: translateX(8px);
 }
 
 /* ---------------------------------------------------- */
@@ -95,6 +127,11 @@ table tbody tr td:last-child, .table tbody tr td:last-child {
     table thead th, table tbody td, 
     .table thead th, .table tbody td {
         padding: 10px 8px;
+    }
+
+    table thead th:last-child, .table thead th:last-child {
+        padding-right: 10px;
+        transform: translateX(4px);
     }
     
     /* Специфический стиль только для разделителя в первой таблице */

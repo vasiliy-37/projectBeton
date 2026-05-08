@@ -1,9 +1,17 @@
 @if (isDivVisible()) {
 <div class="invitation-banner">
-    <button class="close-button" (click)="hideDiv()">&times;</button>
-      <p>Выгодное партнерство для строителей.</p>
+    <button type="button" class="close-button" (click)="hideDiv()" aria-label="Закрыть баннер">&times;</button>
+      <p class="invitation-banner__text">
+      Выгодное партнерство для строителей <a
+        class="invitation-banner__link"
+        href="#"
+        (click)="onConditionsLink($event)"
+      >узнать условия...</a>
+    </p>
 
-    <app-contact-button (openModal)="openModal()"></app-contact-button>
+    <div class="invitation-banner__cta invitation-banner__cta--desktop">
+      <app-contact-button (openModal)="openModal()"></app-contact-button>
+    </div>
 
     @if (showContactModal()) {
   <app-form-invitation (closeModal)="closeModal()"></app-form-invitation>

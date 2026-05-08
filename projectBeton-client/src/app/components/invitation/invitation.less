@@ -15,7 +15,7 @@
   padding-right: 94px;
 }
 
-.invitation-banner p {
+.invitation-banner__text {
   font-size: 0.72rem;
   color: #ffefed;
   margin: 0;
@@ -24,6 +24,23 @@
   line-height: 1.4;
   text-align: left;
   font-weight: 700;
+}
+
+.invitation-banner__link {
+  display: none;
+  margin-left: 0.15em;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.invitation-banner__link:hover {
+  color: #ffffff;
 }
 
 .close-button {
@@ -54,13 +71,18 @@
     padding: 10px 70px 10px 12px;
   }
 
-  .invitation-banner p {
+  .invitation-banner__text {
     font-size: 0.62rem;
-    max-width: calc(100% - 30px);
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
-  app-contact-button {
-    font-size: 12px;
-    padding: 6px 10px;
+  .invitation-banner__cta--desktop {
+    display: none;
+  }
+
+  .invitation-banner__link {
+    display: inline;
+    margin-left: 0.15em;
   }
 }

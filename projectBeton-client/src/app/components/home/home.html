@@ -14,8 +14,8 @@
           С ЗАВОДА
         </h1>
         <p>
-          Производство и доставка товарного бетона всех марок. Собственный автопарк. Контроль
-          качества в сертифицированной лаборатории.
+          Бетон любой марки с доставкой по Иваново и области. Расчитайте стоимость с доставкой в
+          нашем калькуляторе.
         </p>
       </div>
     </div>
@@ -24,11 +24,24 @@
       (closeModal)="closeModal()"
       [volume]="orderData()?.volume"
       [grade]="orderData()?.grade"
+      [concreteCost]="orderData()?.concreteCost"
+      [includeDelivery]="orderData()?.includeDelivery"
+      [deliveryCityName]="orderData()?.deliveryCityName"
+      [deliveryCityPricePerM3]="orderData()?.deliveryCityPricePerM3"
+      [deliveryBillableVolume]="orderData()?.deliveryBillableVolume"
+      [deliveryCost]="orderData()?.deliveryCost"
+      [includePump]="orderData()?.includePump"
+      [pumpServiceName]="orderData()?.pumpServiceName"
+      [pumpHours]="orderData()?.pumpHours"
+      [pumpCost]="orderData()?.pumpCost"
+      [finalTotal]="orderData()?.finalTotal"
     >
     </app-order-modal>
   }
 
-  <app-calculator (orderRequested)="handleOrderRequest($event)"></app-calculator>
+  <div id="calculator">
+    <app-calculator (orderRequested)="handleOrderRequest($event)"></app-calculator>
+  </div>
   
 </div>
 
@@ -36,34 +49,72 @@
 
 <section class="home-capabilities" aria-labelledby="home-capabilities-title">
   <div class="home-capabilities__inner">
-    <h2 id="home-capabilities-title">Эффективная подача бетона бетононасосом на объекте</h2>
+    <h2 id="home-capabilities-title">Почему выбирают <span class="home-capabilities__brand-accent">Бетон</span>-Строй</h2>
     <p class="home-capabilities__lead">
-      Когда прямой подъезд миксера невозможен, лучшим решением для стройплощадки будет заказать
-      бетононасос. Это гарантирует быструю отгрузку смеси даже в самых сложных условиях.
+      Поставка для частных и коммерческих объектов. Подбор марки, расчет объема, доставка по графику.
     </p>
 
-    <h3>Преимущества использования спецтехники</h3>
+    <h3>Ключевые преимущества</h3>
     <ul class="home-capabilities__list">
       <li>
-        <strong>Гибкость:</strong> профессиональная аренда АБН позволяет организовать работы на
-        участках с плотной застройкой или сложным рельефом.
+        <strong>Собственное производство:</strong> контроль качества каждой партии.
       </li>
       <li>
-        <strong>Работа через препятствия:</strong> если забор или другие строения мешают
-        проезду, подача бетона стрелой решит проблему и доставит смесь точно в цель.
+        <strong>Логистика по региону:</strong> доставка по Иваново и области.
       </li>
       <li>
-        <strong>Труднодоступные зоны:</strong> возможна заливка через забор и другие преграды на
-        расстояния, где обычные лотки бессильны.
+        <strong>Поможем с выбором марки:</strong> фундамент, плита, стяжка, монолит.
       </li>
       <li>
-        <strong>Дальность действия:</strong> прокачка бетона на расстоянии помогает подать смесь
-        вглубь участка без риска застревания тяжелой техники в мягком грунте.
+        <strong>Прозрачный расчет:</strong> марка, объем, доставка, доп. услуги.
       </li>
     </ul>
-    <p class="home-capabilities__note">Наши менеджеры помогут подобрать нужную технику.</p>
+    <p class="home-capabilities__note">Предоставляем сопроводительные документы на отгрузку.</p>
   </div>
 </section>
 
 <app-home-grade-guide></app-home-grade-guide>
 <app-home-price-table></app-home-price-table>
+
+<section class="home-capabilities" aria-labelledby="home-price-factors-title">
+  <div class="home-capabilities__inner">
+    <h2 id="home-price-factors-title">Как формируется итоговая стоимость бетона</h2>
+    <p class="home-capabilities__lead">
+      Итоговая сумма зависит от марки, объема, адреса и допуслуг. Точную цену показывает калькулятор.
+    </p>
+    <ul class="home-capabilities__list">
+      <li><strong>Марка:</strong> для частных фундаментов обычно выбирают М300.</li>
+      <li><strong>Объем:</strong> сумма растет пропорционально количеству м3.</li>
+      <li><strong>Адрес:</strong> учитываются расстояние и условия подъезда.</li>
+      <li><strong>Подача:</strong> бетононасос и спецтехника считаются отдельно.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="home-cities" aria-labelledby="home-cities-title">
+  <div class="home-cities__inner">
+    <h2 id="home-cities-title">География доставки по Ивановской области</h2>
+    <p>
+      Работаем по Иваново и городам области. Выберите город и посмотрите условия поставки.
+    </p>
+    <ul class="home-cities__list">
+      @for (city of cityLinks; track city.slug) {
+        <li>
+          <a [routerLink]="['/beton-v', city.slug]">Бетон в {{ city.city }}</a>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="home-capabilities" aria-labelledby="home-faq-title">
+  <div class="home-capabilities__inner">
+    <h2 id="home-faq-title">Частые вопросы</h2>
+    <ul class="home-capabilities__list">
+      <li><strong>Сколько стоит 1 м3?</strong> Цена зависит от марки и объема.</li>
+      <li><strong>Сколько стоит доставка?</strong> Расчет зависит от адреса и условий подъезда.</li>
+      <li><strong>Можно отгрузить сегодня?</strong> Да, если есть свободное окно в графике.</li>
+      <li><strong>Документы выдаете?</strong> Да, паспорт качества и сопроводительные документы.</li>
+    </ul>
+  </div>
+</section>

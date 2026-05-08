@@ -34,6 +34,26 @@
             <div class="error">Марка бетона обязательна.</div>
           }
         </div>
+
+        <div class="order-summary">
+          <h4>Детали расчета</h4>
+          <p><strong>Бетон:</strong> {{ summary.concreteCost | number:'1.0-0' }} руб.</p>
+          @if (summary.includeDelivery) {
+            <p>
+              <strong>Доставка:</strong>
+              {{ summary.deliveryCost | number:'1.0-0' }} руб.
+              ({{ summary.deliveryCityName }}, {{ summary.deliveryCityPricePerM3 | number:'1.0-0' }} руб/м³, расчетный объем {{ summary.deliveryBillableVolume }} м³)
+            </p>
+          }
+          @if (summary.includePump) {
+            <p>
+              <strong>Бетононасос:</strong>
+              {{ summary.pumpCost | number:'1.0-0' }} руб.
+              ({{ summary.pumpServiceName }}, {{ summary.pumpHours }} ч)
+            </p>
+          }
+          <p class="order-summary__total"><strong>Итого:</strong> {{ summary.finalTotal | number:'1.0-0' }} руб.</p>
+        </div>
         <button type="submit" [disabled]="orderForm.invalid">Отправить заказ</button>
       </form>
     </div>

@@ -1,14 +1,16 @@
 <header>
     <div class="logo">
+        <a class="logo-link" routerLink="/" aria-label="На главную Бетон-Строй">
         <div class="logo-brand-row">
             <img class="logo-mixer" src="/assets/logo-mixer.png" alt="" width="56" height="56" aria-hidden="true">
             <div class="logo-text">
-                <div class="logo-main" aria-label="Бетон">
-                    <span class="logo-char logo-char--accent">Б</span><span class="logo-char logo-char--accent">Е</span><span class="logo-char logo-char--accent">Т</span><span class="logo-char logo-char--dark">О</span><span class="logo-char logo-char--dark">Н</span>
+                <div class="logo-main" aria-label="Бетон-Строй">
+                    <span class="logo-char logo-char--accent">Б</span><span class="logo-char logo-char--accent">Е</span><span class="logo-char logo-char--accent">Т</span><span class="logo-char logo-char--accent">О</span><span class="logo-char logo-char--accent">Н</span><span class="logo-char logo-char--dark">-</span><span class="logo-char logo-char--dark">С</span><span class="logo-char logo-char--dark">Т</span><span class="logo-char logo-char--dark">Р</span><span class="logo-char logo-char--dark">О</span><span class="logo-char logo-char--dark">Й</span>
                 </div>
-                <div class="logo-subtitle">с доставкой в Иваново</div>
+                <div class="logo-subtitle">Иваново и область</div>
             </div>
         </div>
+        </a>
     </div>
 
     <div class="contact-info-container">
@@ -22,9 +24,7 @@
     </div>
     
     <div class="actions">
-        <!-- Кнопка перехода к калькулятору на главной странице -->
-        <a routerLink="/" class="btn-calculator" routerLinkActive="active-btn"
-            [routerLinkActiveOptions]="{exact: true}">
+        <a href="/#calculator" class="btn-calculator" (click)="goToCalculator($event)">
             Сделать расчёт
             <span></span>
         </a>

@@ -16,9 +16,17 @@ header {
 .contact-info-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     flex: 1;
     gap: 24px;
+}
+
+.contact-info {
+    margin: 0 auto;
+}
+
+.navigation-mobile-wrapper {
+    margin-left: auto;
 }
 
 .logo {
@@ -31,6 +39,11 @@ header {
     display: flex;
     align-items: center;
     gap: 14px;
+}
+
+.logo-link {
+    display: inline-flex;
+    text-decoration: none;
 }
 
 .logo-text {
@@ -79,6 +92,8 @@ header {
     margin-top: 4px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    align-self: stretch;
+    text-align: center;
 }
 
 .btn-calculator {
@@ -114,24 +129,59 @@ header {
         margin-top: 0;
         padding: 12px;
         border-radius: 0;
+        /* Keep mobile bottom nav fixed to viewport, not header box */
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
 
     .contact-info-container {
         width: 100%;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .contact-info {
+        flex: 0 0 100%;
+        margin: 0;
+    }
+
+    .navigation-mobile-wrapper {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .logo {
+        width: 100%;
+        align-items: flex-start;
+    }
+
+    .logo-link {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .logo-brand-row {
+        justify-content: flex-start;
+    }
+
+    .logo-text {
+        align-items: flex-start;
+        text-align: left;
     }
 
     .logo-main {
-        font-size: 1.32rem;
+        font-size: 1.58rem;
         line-height: 1;
+        justify-content: flex-start;
     }
 
     .logo-mixer {
-        width: 46px;
-        height: 46px;
+        width: 76px;
+        height: 56px;
     }
 
     .logo-subtitle {
-        font-size: 0.66rem;
+        font-size: 0.82rem;
     }
 
     .actions {

@@ -27,4 +27,9 @@ showContactModal = signal(false);
   closeModal(): void {
     this.showContactModal.set(false);
   }
+
+  onConditionsLink(event: Event): void {
+    event.preventDefault();
+    this.openModal();
+  }
 }

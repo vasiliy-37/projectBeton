@@ -1,0 +1,123 @@
+.city-landing {
+  padding: 36px 0 52px;
+  background: #f6f6fb;
+}
+
+.city-landing__inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.city-landing__head h1 {
+  margin: 0 0 14px;
+  color: #2d2f33;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.city-landing__head p {
+  margin: 0;
+  max-width: 900px;
+  color: #5a5b60;
+  line-height: 1.7;
+}
+
+.city-landing__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.city-landing__card {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e6e6ec;
+  padding: 18px;
+}
+
+.city-landing__card h2 {
+  margin: 0 0 10px;
+  color: #2d2f33;
+  font-size: 1.1rem;
+}
+
+.city-landing__card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.city-landing__card li {
+  color: #5a5b60;
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+
+.city-landing__card li:last-child {
+  margin-bottom: 0;
+}
+
+.city-landing__cta {
+  margin: 20px 0 0;
+  font-weight: 600;
+  color: #2d2f33;
+}
+
+.city-landing__cities {
+  margin-top: 26px;
+  padding: 18px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e6e6ec;
+}
+
+.city-landing__cities h2 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+  color: #2d2f33;
+}
+
+.city-landing__cities ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.city-landing__cities a {
+  color: #bb0100;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.city-landing__cities a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 960px) {
+  .city-landing__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .city-landing__cities ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .city-landing {
+    padding: 28px 0 42px;
+  }
+
+  .city-landing__inner {
+    padding: 0 14px;
+  }
+
+  .city-landing__cities ul {
+    grid-template-columns: 1fr;
+  }
+}

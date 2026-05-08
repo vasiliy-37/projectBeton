@@ -6,20 +6,32 @@ const ContactSchema = new Schema({
     // Поле для хранения номера телефона (обязательное, уникальное)
     phoneNumber: {
         type: String,
-        required: true,
-        unique: true
+        default: ''
     },
 
     phoneHref: {
         type: String,
-        required: true,
-        unique: true
+        default: ''
+    },
+
+    emails: {
+        type: [String],
+        default: []
+    },
+
+    address: {
+        type: String,
+        default: ''
+    },
+
+    mapEmbedUrl: {
+        type: String,
+        default: ''
     },
 
     // Поле для типа контакта, чтобы отличить основной номер от других
     type: {
         type: String,
-        required: true,
         default: 'main'
     }
 }, {

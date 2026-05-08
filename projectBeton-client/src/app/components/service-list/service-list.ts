@@ -7,6 +7,8 @@ type ServiceUnit = typeof ALLOWED_UNITS[number];
 
 export interface ServiceItem {
   _id: string;
+  category: string;
+  groupSubtitle?: string;
   name: string;
   price: number;
   unit:ServiceUnit;
@@ -41,6 +43,33 @@ export class ServiceList implements OnInit{
         this.isLoading = false;
         console.error(err);
       }
+    });
+  }
+
+  getGroupedServices(): { category: string; subtitle: string; items: ServiceItem[] }[] {
+    const grouped = new Map<string, ServiceItem[]>();
+    for (const service of this.services) {
+      const key = (service.category || 'Общие услуги').trim();
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push(service);
+    }
+
+    return Array.from(grouped.entries()).map(([category, items]) => {
+      const normalizedCategory = category.toLowerCase();
+      const sortedItems = [...items];
+
+      // Только для категории противоморозных добавок сортируем позиции по цене.
+      if (normalizedCategory.includes('противомороз')) {
+        sortedItems.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+      }
+
+      return {
+        category,
+        subtitle: items.find((it) => (it.groupSubtitle || '').trim())?.groupSubtitle?.trim() || '',
+        items: sortedItems
+      };
     });
   }
 }
