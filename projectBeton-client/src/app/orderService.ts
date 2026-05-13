@@ -4,6 +4,8 @@ import { HttpClient } from '@angular/common/http';
 interface ContactData {
   name: string;
   phone: string;
+  /** Опционально: Google reCAPTCHA v3 */
+  recaptchaToken?: string;
 }
 
 interface OrderData {
@@ -22,6 +24,8 @@ interface OrderData {
   pumpHours?: number;
   pumpCost?: number;
   finalTotal?: number;
+  /** Опционально: Google reCAPTCHA v3 */
+  recaptchaToken?: string;
 }
 
 // Интерфейс для ответа (предполагаем, что бэкенд возвращает статус)

@@ -1,0 +1,61 @@
+# Запуск из каталога projectBeton-main:
+#   cp .env.example .env && заполнить NG_ALLOWED_HOSTS для продакшена (домен сайта)
+#   cp projectBeton-server/.env.example projectBeton-server/.env   # JWT, почта, CORS, FRONTEND_URL API
+#   docker compose up -d --build
+#
+# Сайт: http://localhost:4000 (локально). В проде: NG_ALLOWED_HOSTS в .env здесь; CORS_ORIGINS и FRONTEND_URL — в projectBeton-server/.env.
+# MongoDB только внутри сети compose (порт наружу не проброшен).
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+
+  api:
+    build:
+      context: ./projectBeton-server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./projectBeton-server/.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/projectBeton
+      NODE_ENV: production
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - works_uploads:/app/uploads
+    expose:
+      - '3000'
+
+  web:
+    build:
+      context: ./projectBeton-client
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      TRUST_PROXY: '1'
+      API_ORIGIN: http://api:3000
+      PORT: '4000'
+      # Список доменов для Angular SSR (через запятую). Локально в Docker:
+      NG_ALLOWED_HOSTS: ${NG_ALLOWED_HOSTS:-localhost,127.0.0.1}
+    depends_on:
+      - api
+    ports:
+      - '4000:4000'
+
+volumes:
+  mongo_data:
+    name: projectbeton_mongo_data
+  works_uploads:
+    name: projectbeton_works_uploads

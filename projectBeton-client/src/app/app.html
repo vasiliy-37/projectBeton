@@ -1,15 +1,30 @@
-<div class="app-container">
 <a class="skip-link" href="#main-content">Перейти к основному контенту</a>
-<app-invitation></app-invitation>
-<app-header></app-header>
 
-<main id="main-content" class="page-content-layout">
-    
+<div class="app-container">
+  <app-invitation></app-invitation>
+  <app-header></app-header>
+
+  <main id="main-content" class="page-content-layout">
     <router-outlet></router-outlet>
-    
-</main>
+  </main>
 
-<div class="container-footer">
+  <div class="container-footer">
     <app-footer></app-footer>
+  </div>
 </div>
-</div> 
+
+@if (showScrollTop()) {
+  <button
+    type="button"
+    class="scroll-top-btn"
+    (click)="scrollToTop()"
+    aria-label="Наверх"
+    title="Наверх"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path fill="currentColor" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
+    </svg>
+  </button>
+}
+
+<app-cookie-consent-banner />

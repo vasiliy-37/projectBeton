@@ -5,7 +5,8 @@ import { HttpClient } from '@angular/common/http';
 export interface WorkItem {
   _id?: string;
   title: string;
-  imageData: string; // Наша Base64 строка
+  /** URL вида /uploads/works/... (отдаёт API) */
+  imageUrl: string;
 }
 
 @Injectable({
@@ -28,9 +29,9 @@ export class WorkService {
     });
   }
 
-  // 2. Отправить новую работу в базу
-  create(work: WorkItem) {
-    return this.http.post<WorkItem>('/api/works', work).subscribe(newWork => {
+  // 2. Отправить новую работу: сервер сохранит файл; тело — title + imageData (data URL с админки)
+  create(payload: { title: string; imageData: string }) {
+    return this.http.post<WorkItem>('/api/works', payload).subscribe((newWork) => {
       // Обновляем сигнал: добавляем новую работу к текущим
       this.worksSignal.update(current => [...current, newWork]);
     });

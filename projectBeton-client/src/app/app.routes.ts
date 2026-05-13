@@ -34,6 +34,11 @@ export const routes: Routes = [
     loadComponent: () => import('./components/contacts/contacts').then((m) => m.Contacts),
     title: 'Контакты ProjectBeton в Иваново | Телефон, адрес, email'
   },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./components/privacy/privacy').then((m) => m.Privacy),
+    title: 'Политика конфиденциальности и персональные данные | Бетон-Строй'
+  },
 
   {
     path: 'login',

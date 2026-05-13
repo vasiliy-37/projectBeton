@@ -7,7 +7,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const cors = require('cors')
-const nodemailer = require('nodemailer')
+const nodemailer = require('nodemailer');
+const rateLimit = require('express-rate-limit');
+const { verifyRecaptchaV3 } = require('./recaptcha');
 
 const app = express();
 
@@ -18,10 +20,44 @@ const sandBrands = require('./models/sandBrands');
 const Service = require('./models/Service');
 const Contact = require('./models/contacts.js');
 const DeliveryCity = require('./models/DeliveryCity');
-const DB_URL = 'mongodb://localhost:27017/projectBeton';
 const User = require('./models/User.js');
-const JWT_SECRET = '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8258d5f39aee4cfb35dc007c77255730306c8ae0bdb049d6dd80246a06e986566b24a';
 const Work = require('./models/Work');
+
+const fs = require('fs/promises');
+const fssync = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const UPLOADS_ROOT = path.join(__dirname, 'uploads');
+const WORKS_UPLOAD_DIR = path.join(UPLOADS_ROOT, 'works');
+const SEED_WORKS_DIR = path.join(__dirname, 'seed-works');
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction || process.env.TRUST_PROXY === '1') {
+    app.set('trust proxy', 1);
+}
+
+/** Mongo: задайте MONGODB_URI в .env на VPS; локально по умолчанию localhost */
+const DB_URL = process.env.MONGODB_URI || 'mongodb://localhost:27017/projectBeton';
+
+/** JWT: в production обязателен JWT_SECRET в .env; локально допускается fallback (см. предупреждение в консоли) */
+const JWT_DEV_FALLBACK =
+    '3bdd2e176361db6221c0bfe59befd91cbe1969ba89c0b42e616e5ef008e8258d5f39aee4cfb35dc007c77255730306c8ae0bdb049d6dd80246a06e986566b24a';
+const JWT_SECRET = process.env.JWT_SECRET || (!isProduction ? JWT_DEV_FALLBACK : '');
+if (!JWT_SECRET) {
+    console.error('Укажите JWT_SECRET в .env (обязательно для NODE_ENV=production).');
+    process.exit(1);
+}
+if (!process.env.JWT_SECRET && !isProduction) {
+    console.warn('[dev] JWT_SECRET не задан в .env — используется встроенный ключ только для локальной разработки.');
+}
+
+/** Куки админки: secure на HTTPS (NODE_ENV=production или COOKIE_SECURE=true) */
+function adminAuthCookieBase() {
+    const secure = isProduction || process.env.COOKIE_SECURE === 'true';
+    return { httpOnly: true, secure, sameSite: 'Lax' };
+}
 
 const DEFAULT_DELIVERY_CITIES = [
     { slug: 'ivanovo', name: 'Иваново', cityPrepositional: 'Иваново', district: 'Ивановской области' },
@@ -86,25 +122,169 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+function toWorkDto(doc) {
+    const o = doc.toObject ? doc.toObject() : doc;
+    const imageUrl = o.imageUrl || o.imageData || '';
+    return { _id: o._id, title: o.title, imageUrl };
+}
+
+function extensionFromDataUrl(dataUrl) {
+    const m = /^data:image\/(webp|jpeg|jpg|png);base64,/i.exec(dataUrl);
+    if (!m) {
+        return 'webp';
+    }
+    const ext = m[1].toLowerCase();
+    if (ext === 'jpeg') {
+        return 'jpg';
+    }
+    return ext;
+}
+
+async function saveWorkImageFromDataUrl(dataUrl) {
+    const trimmed = String(dataUrl).trim();
+    const match = /^data:image\/\w+;base64,(.+)$/s.exec(trimmed);
+    if (!match) {
+        const err = new Error('INVALID_IMAGE_DATA');
+        throw err;
+    }
+    const buf = Buffer.from(match[1], 'base64');
+    if (buf.length > 8 * 1024 * 1024) {
+        const err = new Error('TOO_LARGE');
+        throw err;
+    }
+    const ext = extensionFromDataUrl(trimmed);
+    const name = `${crypto.randomUUID()}.${ext}`;
+    const rel = `/uploads/works/${name}`;
+    const abs = path.join(WORKS_UPLOAD_DIR, name);
+    await fs.writeFile(abs, buf);
+    return rel;
+}
+
+async function deleteWorkImageFile(imageUrl) {
+    if (!imageUrl || typeof imageUrl !== 'string') {
+        return;
+    }
+    if (!imageUrl.startsWith('/uploads/works/')) {
+        return;
+    }
+    const base = path.basename(imageUrl);
+    if (!base || base.includes('..')) {
+        return;
+    }
+    const abs = path.join(WORKS_UPLOAD_DIR, base);
+    await fs.unlink(abs).catch(() => {});
+}
+
+async function ensureWorksSeededFromDisk() {
+    const count = await Work.countDocuments();
+    if (count > 0) {
+        return;
+    }
+    const manifestPath = path.join(SEED_WORKS_DIR, 'manifest.json');
+    let manifest;
+    try {
+        const raw = await fs.readFile(manifestPath, 'utf8');
+        manifest = JSON.parse(raw);
+    } catch {
+        return;
+    }
+    if (!Array.isArray(manifest) || manifest.length === 0) {
+        return;
+    }
+    await fs.mkdir(WORKS_UPLOAD_DIR, { recursive: true });
+    let imported = 0;
+    for (const item of manifest) {
+        const file = String(item.file || '').trim();
+        const title = String(item.title || '').trim();
+        if (!file || !title) {
+            continue;
+        }
+        const srcPath = path.join(SEED_WORKS_DIR, file);
+        let st;
+        try {
+            st = await fs.stat(srcPath);
+        } catch {
+            console.warn('[seed-works] файл не найден:', file);
+            continue;
+        }
+        if (!st.isFile()) {
+            continue;
+        }
+        const ext = (path.extname(file).slice(1).toLowerCase() || 'webp').replace(/[^a-z0-9]/g, '') || 'webp';
+        const name = `${crypto.randomUUID()}.${ext}`;
+        const destAbs = path.join(WORKS_UPLOAD_DIR, name);
+        await fs.copyFile(srcPath, destAbs);
+        await Work.create({ title, imageUrl: `/uploads/works/${name}` });
+        imported += 1;
+    }
+    if (imported > 0) {
+        console.log(`[seed-works] Импортировано работ: ${imported} (из seed-works/manifest.json)`);
+    }
+}
+
 mongoose.connect(DB_URL)
     .then(async () => {
-        console.log('MongoDB successfully connected locally');
+        console.log('MongoDB connected:', DB_URL.replace(/\/\/([^:]+):[^@]+@/, '//***:***@'));
         await ensureDeliveryCitiesSeeded();
+        await ensureWorksSeededFromDisk();
     })
     .catch(err => console.error('MongoDB connection error:', err));
 
 const Brand = require('./models/product');
 
-const corsOptions = {
-    origin: true,
+const corsBase = {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };
 
+/** CORS: задайте CORS_ORIGINS=https://site.ru,http://localhost:4000 через запятую; иначе (dev) — origin: true */
+const corsOriginsRaw = process.env.CORS_ORIGINS?.trim();
+const corsOptions = corsOriginsRaw
+    ? {
+          ...corsBase,
+          origin(origin, callback) {
+              if (!origin) {
+                  return callback(null, true);
+              }
+              const list = corsOriginsRaw.split(',').map((s) => s.trim()).filter(Boolean);
+              if (list.includes(origin)) {
+                  return callback(null, true);
+              }
+              return callback(null, false);
+          },
+      }
+    : { ...corsBase, origin: true };
+
+if (isProduction && !corsOriginsRaw) {
+    console.warn(
+        '[production] CORS_ORIGINS не задан в .env — разрешён любой Origin (origin: true). ' +
+            'Укажите список origin фронта, например: https://site.ru,https://www.site.ru',
+    );
+}
+
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
+
+fssync.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
+
+app.use(
+    '/uploads',
+    express.static(UPLOADS_ROOT, {
+        maxAge: isProduction ? 31536000000 : 0,
+        index: false,
+        etag: true,
+    })
+);
+
+/** Лимит на публичные формы (антиспам). За Nginx нужен trust proxy — см. выше. */
+const publicFormLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 25,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 /**
  * Этот процесс — только API (:3000). Любой GET/HEAD не под /api иначе даёт Express "Cannot GET".
@@ -114,7 +294,7 @@ app.use((req, res, next) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
         return next();
     }
-    if (req.path.startsWith('/api')) {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
         return next();
     }
     const frontendBase = (process.env.FRONTEND_URL || 'http://localhost:4000').replace(/\/$/, '');
@@ -296,7 +476,7 @@ app.get('/api/get-phone-number', (req, res) => {
     });
 });
 
-app.post('/api/set-phone-number', (req, res) => {
+app.post('/api/set-phone-number', authenticateToken, (req, res) => {
     const { phoneNumber, address, mapEmbedUrl } = req.body;
     const normalizedPhone = (phoneNumber || '').trim();
     const phoneHref = normalizedPhone ? `tel:${normalizedPhone.replace(/[^\d+]/g, '')}` : '#';
@@ -329,7 +509,7 @@ app.post('/api/set-phone-number', (req, res) => {
         });
 });
 
-app.post('/api/add-contact-email', (req, res) => {
+app.post('/api/add-contact-email', authenticateToken, (req, res) => {
     const normalizedEmail = String(req.body?.email || '').trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -363,7 +543,7 @@ app.post('/api/add-contact-email', (req, res) => {
         });
 });
 
-app.post('/api/delete-contact-email', (req, res) => {
+app.post('/api/delete-contact-email', authenticateToken, (req, res) => {
     const normalizedEmail = String(req.body?.email || '').trim().toLowerCase();
 
     if (!normalizedEmail) {
@@ -458,10 +638,8 @@ app.post('/api/login', async (req, res) => {
         // 5. Устанавливаем токен в HTTP-Only куку вместо отправки в теле ответа
         // (Для production нужно установить secure: true)
         res.cookie('admin_auth_token', token, {
-            httpOnly: true, // <-- Защита от XSS
-            secure: false, // <-- Установите 'true' при развертывании на HTTPS!
-            maxAge: 3600000, // 1 час в миллисекундах
-            sameSite: 'Lax' // Рекомендованная настройка
+            ...adminAuthCookieBase(),
+            maxAge: 3600000,
         });
 
         // Отправляем ответ без токена в теле
@@ -475,15 +653,19 @@ app.post('/api/login', async (req, res) => {
 
 app.post('/api/logout', (req, res) => {
     // Удаляем куку, передавая те же настройки, с которыми она была установлена
-    res.clearCookie('admin_auth_token', {
-        httpOnly: true,
-        secure: false, // <-- Установите 'true' при развертывании на HTTPS!
-        sameSite: 'Lax'
-    });
+    res.clearCookie('admin_auth_token', adminAuthCookieBase());
     res.json({ message: 'Выход выполнен. Кука удалена.' });
 });
 
-app.post('/api/send-order', async (req, res) => {
+app.post('/api/send-order', publicFormLimiter, async (req, res) => {
+    const captcha = await verifyRecaptchaV3(req.body?.recaptchaToken);
+    if (!captcha.ok) {
+        return res.status(400).send({
+            success: false,
+            message: 'Проверка reCAPTCHA не пройдена. Обновите страницу и попробуйте снова.',
+        });
+    }
+
     // Деструктуризация данных, пришедших из Angular (имя, телефон, количество, марка)
     const {
         name,
@@ -541,7 +723,15 @@ app.post('/api/send-order', async (req, res) => {
 // НОВЫЙ МАРШРУТ: POST /api/request-call
 // Для обработки заявки на обратный звонок
 // ----------------------------------------
-app.post('/api/request-call', async (req, res) => {
+app.post('/api/request-call', publicFormLimiter, async (req, res) => {
+    const captcha = await verifyRecaptchaV3(req.body?.recaptchaToken);
+    if (!captcha.ok) {
+        return res.status(400).send({
+            success: false,
+            message: 'Проверка reCAPTCHA не пройдена. Обновите страницу и попробуйте снова.',
+        });
+    }
+
     // Получаем только имя и телефон, отправленные с Angular
     const { name, phone } = req.body;
 
@@ -577,9 +767,10 @@ app.post('/api/request-call', async (req, res) => {
 });
 
 app.get('/api/works', (req, res) => {
-    Work.find().sort({ createdAt: -1 }) // Сначала новые
-        .then(works => res.json(works))
-        .catch(err => res.status(500).json({ error: 'Ошибка загрузки галереи' }));
+    Work.find()
+        .sort({ createdAt: -1 })
+        .then((works) => res.json(works.map((w) => toWorkDto(w))))
+        .catch(() => res.status(500).json({ error: 'Ошибка загрузки галереи' }));
 });
 
 app.get('/api/delivery-cities', (req, res) => {
@@ -694,27 +885,46 @@ app.delete('/api/admin/delivery-cities/:id', authenticateToken, async (req, res)
     }
 });
 
-// 2. Добавить новую работу (защищено токеном)
-app.post('/api/works', authenticateToken, (req, res) => {
-    const { title, imageData } = req.body;
-
-    if (!title || !imageData) {
-        return res.status(400).json({ error: 'Название и изображение обязательны' });
+// 2. Добавить новую работу (защищено токеном): картинка сохраняется в uploads/works, в БД — только URL
+app.post('/api/works', authenticateToken, async (req, res) => {
+    try {
+        const title = String(req.body?.title || '').trim();
+        const imageData = req.body?.imageData;
+        if (!title || typeof imageData !== 'string' || !imageData.trim()) {
+            return res.status(400).json({ error: 'Название и изображение обязательны' });
+        }
+        const imageUrl = await saveWorkImageFromDataUrl(imageData);
+        const doc = await Work.create({ title, imageUrl });
+        res.status(201).json(toWorkDto(doc));
+    } catch (e) {
+        console.error(e);
+        if (e.message === 'INVALID_IMAGE_DATA') {
+            return res.status(400).json({ error: 'Неверный формат изображения (ожидается data URL).' });
+        }
+        if (e.message === 'TOO_LARGE') {
+            return res.status(413).json({ error: 'Файл слишком большой' });
+        }
+        res.status(500).json({ error: 'Ошибка сохранения в базу' });
     }
-
-    const newWork = new Work({ title, imageData });
-    newWork.save()
-        .then(doc => res.status(201).json(doc))
-        .catch(err => res.status(500).json({ error: 'Ошибка сохранения в базу' }));
 });
 
 // 3. Удалить работу (защищено токеном)
-app.delete('/api/works/:id', authenticateToken, (req, res) => {
-    Work.findByIdAndDelete(req.params.id)
-        .then(() => res.status(204).send())
-        .catch(err => res.status(500).json({ error: 'Ошибка удаления' }));
+app.delete('/api/works/:id', authenticateToken, async (req, res) => {
+    try {
+        const doc = await Work.findById(req.params.id);
+        if (!doc) {
+            return res.status(404).json({ error: 'Не найдено' });
+        }
+        await deleteWorkImageFile(doc.imageUrl);
+        await Work.findByIdAndDelete(req.params.id);
+        res.status(204).send();
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Ошибка удаления' });
+    }
 });
 
 app.listen(PORT, () => {
-    console.log(`API: http://localhost:${PORT} (только /api/*). Сайт: ${process.env.FRONTEND_URL || 'http://localhost:4000'}`);
+    console.log(`API: http://localhost:${PORT} (/api/* и /uploads/*). Сайт: ${process.env.FRONTEND_URL || 'http://localhost:4000'}`);
+});
 });

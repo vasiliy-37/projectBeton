@@ -35,6 +35,31 @@
           }
         </div>
 
+        <div class="form-group consent-row">
+          <label class="consent-row__label">
+            <input type="checkbox" formControlName="consentPdn" />
+            <span>
+              Согласен(на) на
+              <a [routerLink]="['/privacy']" (click)="$event.stopPropagation()">обработку персональных данных</a>
+              для обработки заявки и связи со мной.
+            </span>
+          </label>
+          @if (orderForm.get('consentPdn')?.invalid && orderForm.get('consentPdn')?.touched) {
+            <div class="error">Для отправки нужно согласие.</div>
+          }
+        </div>
+
+        @if (formMessage()) {
+          <div
+            class="form-feedback"
+            [class.form-feedback--success]="formMessageKind() === 'success'"
+            [class.form-feedback--error]="formMessageKind() === 'error'"
+            role="status"
+          >
+            {{ formMessage() }}
+          </div>
+        }
+
         <div class="order-summary">
           <h4>Детали расчета</h4>
           <p><strong>Бетон:</strong> {{ summary.concreteCost | number:'1.0-0' }} руб.</p>
@@ -54,7 +79,9 @@
           }
           <p class="order-summary__total"><strong>Итого:</strong> {{ summary.finalTotal | number:'1.0-0' }} руб.</p>
         </div>
-        <button type="submit" [disabled]="orderForm.invalid">Отправить заказ</button>
+        <button type="submit" [disabled]="orderForm.invalid || isSubmitting()">
+          {{ isSubmitting() ? 'Отправка…' : 'Отправить заказ' }}
+        </button>
       </form>
     </div>
   </div>

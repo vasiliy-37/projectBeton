@@ -1,11 +1,20 @@
 <section class="useful-page">
   <div class="useful-page__inner">
     <nav class="useful-toc" aria-label="Статьи в разделе «Полезное»">
-      <h2 class="useful-toc__title">Материалы</h2>
+      <h2 class="useful-toc__title">Полезные статьи</h2>
       <ul class="useful-toc__list">
-        <li><a href="#useful-grade-guide">Как выбрать марку бетона</a></li>
-        <li><a href="#useful-memo-title">Как принять бетон без хлопот</a></li>
-        <li><a href="#useful-concrete-care">Уход за бетоном после заливки</a></li>
+        <li>
+          <a href="/useful#useful-grade-guide" (click)="goToSection($event, 'useful-grade-guide')"
+            >Как выбрать марку бетона</a>
+        </li>
+        <li>
+          <a href="/useful#useful-memo-title" (click)="goToSection($event, 'useful-memo-title')"
+            >Как принять бетон без хлопот</a>
+        </li>
+        <li>
+          <a href="/useful#useful-concrete-care" (click)="goToSection($event, 'useful-concrete-care')"
+            >Уход за бетоном после заливки</a>
+        </li>
       </ul>
     </nav>
 

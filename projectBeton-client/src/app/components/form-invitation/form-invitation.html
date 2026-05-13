@@ -20,7 +20,35 @@
             <div class="error">Введите корректный номер телефона.</div>
           }
         </div>
-        <button type="submit" [disabled]="contactForm.invalid">Отправить</button>
+
+        <div class="form-group consent-row">
+          <label class="consent-row__label">
+            <input type="checkbox" formControlName="consentPdn" />
+            <span>
+              Согласен(на) на
+              <a [routerLink]="['/privacy']" (click)="$event.stopPropagation()">обработку персональных данных</a>
+              для обратного звонка.
+            </span>
+          </label>
+          @if (contactForm.get('consentPdn')?.invalid && contactForm.get('consentPdn')?.touched) {
+            <div class="error">Для отправки нужно согласие.</div>
+          }
+        </div>
+
+        @if (formMessage()) {
+          <div
+            class="form-feedback"
+            [class.form-feedback--success]="formMessageKind() === 'success'"
+            [class.form-feedback--error]="formMessageKind() === 'error'"
+            role="status"
+          >
+            {{ formMessage() }}
+          </div>
+        }
+
+        <button type="submit" [disabled]="contactForm.invalid || isSubmitting()">
+          {{ isSubmitting() ? 'Отправка…' : 'Отправить' }}
+        </button>
       </form>
     </div>
   </div>

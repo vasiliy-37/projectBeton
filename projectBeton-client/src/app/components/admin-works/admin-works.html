@@ -19,7 +19,7 @@
   <div class="works-grid">
     @for (work of workService.works(); track work._id) {
       <div class="work-item">
-        <img [src]="work.imageData">
+        <img [src]="work.imageUrl" [alt]="work.title" loading="lazy">
         <div class="work-info">
           <span>{{ work.title }}</span>
           <button (click)="workService.delete(work._id!)">🗑 Удалить</button>

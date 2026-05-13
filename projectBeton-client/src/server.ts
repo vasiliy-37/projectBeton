@@ -7,12 +7,21 @@ import {
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { existsSync } from 'node:fs';
+import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
+
+function isIpv4External(addr: { family: string | number; internal?: boolean }): boolean {
+  const fam = addr.family;
+  if (fam !== 'IPv4' && fam !== 4) {
+    return false;
+  }
+  return !addr.internal;
+}
 
 /**
  * Доверенные Host для SSR (защита от SSRF). Angular читает `process.env.NG_ALLOWED_HOSTS` (через запятую).
  *
- * Локально: если переменная не задана, подставляем localhost (удобно для `npm run serve:ssr`).
+ * Локально: если переменная не задана — localhost + IPv4 LAN (иначе с телефона по Wi‑Fi SSR отклоняет Host).
  *
  * ПРОДАКШЕН: обязательно задайте NG_ALLOWED_HOSTS с вашим доменом (и при необходимости www),
  * например: NG_ALLOWED_HOSTS=projectbeton.ru,www.projectbeton.ru
@@ -28,7 +37,15 @@ function ensureNgAllowedHostsForSsr(): void {
     );
     return;
   }
-  process.env['NG_ALLOWED_HOSTS'] = 'localhost,127.0.0.1';
+  const hosts = new Set<string>(['localhost', '127.0.0.1']);
+  for (const list of Object.values(networkInterfaces())) {
+    for (const addr of list ?? []) {
+      if (isIpv4External(addr)) {
+        hosts.add(addr.address);
+      }
+    }
+  }
+  process.env['NG_ALLOWED_HOSTS'] = [...hosts].join(',');
 }
 
 ensureNgAllowedHostsForSsr();
@@ -51,6 +68,12 @@ function shouldServeSpaFallback(req: express.Request): boolean {
 }
 
 const app = express();
+
+/** За Nginx / балансировщиком — чтобы корректны IP и (при необходимости) secure-куки */
+if (process.env['NODE_ENV'] === 'production' || process.env['TRUST_PROXY'] === '1') {
+  app.set('trust proxy', 1);
+}
+
 const angularApp = new AngularNodeAppEngine();
 
 /** Куда проксировать /api (projectBeton-server). При SSR без этого бэкенд «не виден» — пустой прайс и телефон в HTML. */
@@ -78,6 +101,15 @@ app.use(
     // Express removes '/api' from req.url for mounted middleware.
     // Backend routes are defined as '/api/...', so add prefix back.
     pathRewrite: (path) => `/api${path}`,
+  }),
+);
+
+/** Картинки работ: отдаёт API (файлы в uploads). Без прокси запросы к :4000/upload/... не дойдут до бэкенда */
+app.use(
+  '/uploads',
+  createProxyMiddleware({
+    target: apiOrigin,
+    changeOrigin: true,
   }),
 );
 
@@ -118,12 +150,14 @@ app.use((req, res, next) => {
  */
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
   const port = process.env['PORT'] || 4000;
-  app.listen(port, (error) => {
+  /** 0.0.0.0 — доступ с телефона по Wi‑Fi (LAN); для только localhost: LISTEN_HOST=127.0.0.1 */
+  const host = process.env['LISTEN_HOST']?.trim() || '0.0.0.0';
+  app.listen(Number(port), host, (error) => {
     if (error) {
       throw error;
     }
 
-    console.log(`Node Express server listening on http://localhost:${port}`);
+    console.log(`[SSR] http://${host === '0.0.0.0' ? 'localhost' : host}:${port} (LAN: задайте NG_ALLOWED_HOSTS с IP ПК)`);
   });
 }
 

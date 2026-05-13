@@ -1,15 +1,32 @@
-button {
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
   width: 100%;
+  min-height: 0;
+  align-self: stretch;
+}
+
+button {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
   border: 0;
   background: #bb0100;
   color: #ffefed;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 2px;
   font-family: inherit;
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.11em;
+  line-height: 1.2;
+  text-align: center;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }

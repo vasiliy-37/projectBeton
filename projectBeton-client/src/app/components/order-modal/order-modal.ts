@@ -1,17 +1,23 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core'; // Используем обычный Input
+import { Component, Output, EventEmitter, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { OrderService } from '../../orderService';
+import { RecaptchaService } from '../../recaptcha.service';
 
 @Component({
   selector: 'app-order-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './order-modal.html',
-  styleUrl: './order-modal.less'
+  styleUrl: './order-modal.less',
 })
 export class OrderModal {
   @Output() closeModal = new EventEmitter<void>();
+
+  protected readonly formMessage = signal<string | null>(null);
+  protected readonly formMessageKind = signal<'success' | 'error' | null>(null);
+  protected readonly isSubmitting = signal(false);
 
   summary = {
     concreteCost: 0,
@@ -24,10 +30,9 @@ export class OrderModal {
     pumpServiceName: '',
     pumpHours: 0,
     pumpCost: 0,
-    finalTotal: 0
+    finalTotal: 0,
   };
 
-  // Используем сеттеры: как только значение прилетает, оно сразу ставится в форму
   @Input() set volume(val: number | undefined) {
     if (val !== undefined) {
       this.orderForm.patchValue({ quantity: val });
@@ -97,12 +102,17 @@ export class OrderModal {
 
   orderForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private orderService: OrderService) { 
+  constructor(
+    private fb: FormBuilder,
+    private orderService: OrderService,
+    private recaptcha: RecaptchaService,
+  ) {
     this.orderForm = this.fb.group({
       name: ['', Validators.required],
       phone: ['', [Validators.required, Validators.pattern('[0-9]{10,}')]],
       quantity: [null, [Validators.required, Validators.min(0.1)]],
       brand: ['', Validators.required],
+      consentPdn: [false, Validators.requiredTrue],
       concreteCost: [0],
       includeDelivery: [false],
       deliveryCityName: [''],
@@ -113,20 +123,49 @@ export class OrderModal {
       pumpServiceName: [''],
       pumpHours: [0],
       pumpCost: [0],
-      finalTotal: [0]
+      finalTotal: [0],
     });
   }
 
   async onSubmit(): Promise<void> {
-    if (this.orderForm.valid) {
-      try {
-        await this.orderService.sendOrder(this.orderForm.value);
-        alert('✅ Заказ отправлен!');
-        this.orderForm.reset();
-        this.closeModal.emit();
-      } catch (error) {
-        alert('❌ Ошибка отправки');
-      }
+    this.formMessage.set(null);
+    this.formMessageKind.set(null);
+    if (this.orderForm.invalid) {
+      this.orderForm.markAllAsTouched();
+      return;
+    }
+    this.isSubmitting.set(true);
+    try {
+      const recaptchaToken = await this.recaptcha.execute('order');
+      const raw = this.orderForm.value;
+      const { consentPdn: _c, ...payload } = raw;
+      await this.orderService.sendOrder({ ...payload, recaptchaToken });
+      this.formMessage.set('Заказ отправлен. Мы свяжемся с вами для уточнения деталей.');
+      this.formMessageKind.set('success');
+      this.orderForm.reset({
+        name: '',
+        phone: '',
+        quantity: null,
+        brand: '',
+        consentPdn: false,
+        concreteCost: 0,
+        includeDelivery: false,
+        deliveryCityName: '',
+        deliveryCityPricePerM3: 0,
+        deliveryBillableVolume: 0,
+        deliveryCost: 0,
+        includePump: false,
+        pumpServiceName: '',
+        pumpHours: 0,
+        pumpCost: 0,
+        finalTotal: 0,
+      });
+      this.syncSummaryToForm();
+    } catch {
+      this.formMessage.set('Не удалось отправить заказ. Проверьте соединение и попробуйте ещё раз.');
+      this.formMessageKind.set('error');
+    } finally {
+      this.isSubmitting.set(false);
     }
   }
 
@@ -147,9 +186,9 @@ export class OrderModal {
         pumpServiceName: this.summary.pumpServiceName,
         pumpHours: this.summary.pumpHours,
         pumpCost: this.summary.pumpCost,
-        finalTotal: this.summary.finalTotal
+        finalTotal: this.summary.finalTotal,
       },
-      { emitEvent: false }
+      { emitEvent: false },
     );
   }
 }

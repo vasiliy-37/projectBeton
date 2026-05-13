@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { OrderButton } from '../order-button/order-button';
+import { PhoneDataService } from '../../phone-data.service';
 
 interface Brand {
   _id: string; 
@@ -54,6 +55,10 @@ export interface CalculatorOrderData {
 export class Calculator implements OnInit {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
+  private phoneDataService = inject(PhoneDataService);
+
+  /** Тот же номер, что в шапке (из /api/get-phone-number) */
+  readonly callHref = computed(() => this.phoneDataService.phoneData()?.phoneHref ?? '#');
 
   // Событие для передачи данных в Home
   @Output() orderRequested = new EventEmitter<CalculatorOrderData>();

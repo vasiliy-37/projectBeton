@@ -11,7 +11,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withInMemoryScrolling({
-        anchorScrolling: 'enabled',
+        /** Иначе роутер и ручной scrollIntoView на «Полезном» конфликтуют (двойной скролл). */
+        anchorScrolling: 'disabled',
       }),
     ),
     provideHttpClient(withFetch())

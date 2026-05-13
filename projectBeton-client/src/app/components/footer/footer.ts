@@ -1,14 +1,17 @@
 import { Component, OnInit, OnDestroy, HostListener, computed } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { PhoneDataService } from '../../phone-data.service';
 
 @Component({
   selector: 'app-footer',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './footer.html',
   styleUrl: './footer.less'
 })
 
 export class Footer implements OnInit, OnDestroy {
+  readonly copyrightYear = new Date().getFullYear();
+
   private formatPhone(rawPhone: string): string {
     const digits = String(rawPhone || '').replace(/\D/g, '');
 

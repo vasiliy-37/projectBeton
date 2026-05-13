@@ -55,10 +55,11 @@ body {
 }
 
 app-header {
-    position: sticky;
-    top: 0;
-    z-index: 1200;
+    display: block;
     width: 100%;
+    /* Выше контента страницы (на главной у .text-content-area / калькулятора z-index: 1), иначе выпадающее меню перекрывается */
+    position: relative;
+    z-index: 100;
 }
 
 app-header header {
@@ -75,9 +76,62 @@ app-header header {
     display: block;
 }
 
+.scroll-top-btn {
+    position: fixed;
+    /**
+     * По горизонтали — как правый внутренний край .app-container (max-width 1440px, padding 32px),
+     * а не край окна (поля слева/справа остаются под рекламу / пустоту).
+     */
+    /* +100px влево от прежней позиции в колонке сайта */
+    right: calc(max(0px, (100vw - 1440px) / 2) + 32px + 100px + env(safe-area-inset-right, 0px));
+    bottom: max(24px, env(safe-area-inset-bottom));
+    z-index: 10050;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 4px;
+    background: #bb0100;
+    color: #ffefed;
+    box-shadow: 0 12px 28px rgba(45, 47, 51, 0.18);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.scroll-top-btn:hover {
+    background: #a40100;
+}
+
+.scroll-top-btn:active {
+    transform: scale(0.96);
+}
+
+.scroll-top-btn:focus-visible {
+    outline: 2px solid #2d2f33;
+    outline-offset: 3px;
+}
+
 @media (max-width: 768px) {
     .app-container {
         padding: 0 14px;
         padding-bottom: 84px;
+    }
+
+    /**
+     * Правее: совпадает с правым padding контента (14px), без отступа 52px от края.
+     * Снизу — над .mobile-bottom-nav и блоком футера с каруселью (не лезем на футер по вертикали).
+     */
+    .scroll-top-btn {
+        right: calc(max(0px, (100vw - 1440px) / 2) + 14px + env(safe-area-inset-right, 0px));
+        bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+        width: 44px;
+        height: 44px;
+        /* Ниже нижнего меню (1400), но над контентом страницы */
+        z-index: 1380;
     }
 }

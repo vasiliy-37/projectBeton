@@ -1,6 +1,16 @@
 <div class="home-layout-wrapper">
   <div class="hero-bg" aria-hidden="true">
-    <img src="/assets/background.png" alt="">
+    <picture>
+      <source type="image/webp" srcset="/assets/background.webp" />
+      <img
+        src="/assets/background.webp"
+        alt=""
+        width="1920"
+        height="1080"
+        decoding="async"
+        fetchpriority="high"
+      />
+    </picture>
     <div class="hero-overlay"></div>
   </div>
 
@@ -14,7 +24,7 @@
           С ЗАВОДА
         </h1>
         <p>
-          Бетон любой марки с доставкой по Иваново и области. Расчитайте стоимость с доставкой в
+          Бетон любой марки с доставкой по Иваново и области. Рассчитайте стоимость с доставкой в
           нашем калькуляторе.
         </p>
       </div>
@@ -45,7 +55,11 @@
   
 </div>
 
-<app-portfolio></app-portfolio>
+@defer (on viewport) {
+  <app-portfolio></app-portfolio>
+} @placeholder {
+  <section class="portfolio-section" aria-hidden="true"><div class="container"><h2>Наши работы</h2><p class="loading">Загрузка галереи...</p></div></section>
+}
 
 <section class="home-capabilities" aria-labelledby="home-capabilities-title">
   <div class="home-capabilities__inner">
@@ -80,7 +94,7 @@
   <div class="home-capabilities__inner">
     <h2 id="home-price-factors-title">Как формируется итоговая стоимость бетона</h2>
     <p class="home-capabilities__lead">
-      Итоговая сумма зависит от марки, объема, адреса и допуслуг. Точную цену показывает калькулятор.
+      Итоговая сумма зависит от марки, объема, адреса и доп. услуг. Точную цену показывает калькулятор.
     </p>
     <ul class="home-capabilities__list">
       <li><strong>Марка:</strong> для частных фундаментов обычно выбирают М300.</li>

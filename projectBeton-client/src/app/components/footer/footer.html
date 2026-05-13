@@ -26,15 +26,15 @@
             <div class="footer-section legal-info">
                 <h3>Информация</h3>
                 <ul>
-                    <li><a href="#">Политика конфиденциальности</a></li>
-                    <li><a href="#">Условия доставки</a></li>
-                    <li><a href="#">Сведения о компании (ИНН/ОГРН)</a></li>
+                    <li><a routerLink="/privacy">Политика конфиденциальности и ПДн</a></li>
+                    <li><a routerLink="/privacy" fragment="cookies">Файлы cookie</a></li>
+                    <li><a routerLink="/services">Условия доставки и услуги</a></li>
                 </ul>
             </div>
             
         </div>
         </div>
     <div class="footer-bottom">
-        <p>&copy; 2025 ООО "Бетон с доставкой Иваново". Продажа бетона и строительных смесей.</p>
+        <p>&copy; {{ copyrightYear }} ООО «Бетон с доставкой Иваново». Продажа бетона и строительных смесей.</p>
     </div>
 </footer>
