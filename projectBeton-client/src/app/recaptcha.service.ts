@@ -76,7 +76,10 @@ export class RecaptchaService {
     });
   }
 
-  /** Сначала recaptcha.net (лучше доходит из РФ), при ошибке — google.com. */
+  /**
+   * 1) С вашего origin — /_recaptcha-proxy (см. server.ts), чтобы обойти CSP «только self».
+   * 2–3) Прямой recaptcha.net / google.com.
+   */
   private loadScript(siteKey: string): Promise<void> {
     let p = this.scriptPromises.get(siteKey);
     if (p) {
@@ -88,20 +91,24 @@ export class RecaptchaService {
         resolve();
         return;
       }
-      const hosts = ['www.recaptcha.net', 'www.google.com'];
+      const render = encodeURIComponent(siteKey);
+      const urls = [
+        `${window.location.origin}/_recaptcha-proxy/recaptcha/api.js?render=${render}`,
+        `https://www.recaptcha.net/recaptcha/api.js?render=${render}`,
+        `https://www.google.com/recaptcha/api.js?render=${render}`,
+      ];
       const attempt = (index: number) => {
-        if (index >= hosts.length) {
+        if (index >= urls.length) {
           reject(new Error('recaptcha_script_load_failed'));
           return;
         }
-        const host = hosts[index];
         const s = document.createElement('script');
-        s.src = `https://${host}/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+        s.src = urls[index];
         s.async = true;
         s.defer = true;
         s.setAttribute('data-recaptcha-v3', '1');
         s.setAttribute('data-site-key', siteKey);
-        s.setAttribute('data-recaptcha-host', host);
+        s.setAttribute('data-recaptcha-src-idx', String(index));
         s.onload = () => resolve();
         s.onerror = () => {
           s.remove();

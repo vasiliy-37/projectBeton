@@ -1,12 +1,16 @@
 # Фрагмент для nginx: если reCAPTCHA не грузится, часто виноват заголовок Content-Security-Policy.
-# Подставьте домены в свою политику (одна строка add_header Content-Security-Policy ... или map).
 #
-# В script-src добавьте:
-#   https://www.recaptcha.net https://www.gstatic.com https://www.google.com
+# Сайт грузит api.js через прокси на своём домене: /_recaptcha-proxy/recaptcha/api.js
+# (см. projectBeton-client/src/server.ts). Первый script может уложиться в script-src 'self'.
 #
-# В frame-src добавьте (значок / виджет):
+# После загрузки api.js Google подтягивает код с www.gstatic.com — без него капча не оживёт.
+#
+# В script-src добавьте как минимум:
+#   'self' https://www.gstatic.com https://www.recaptcha.net https://www.google.com
+#
+# В frame-src (значок / виджет v3):
 #   https://www.google.com https://recaptcha.google.com https://www.recaptcha.net
 #
 # Пример только добавок (остальная политика у вас своя):
-#   script-src ... https://www.recaptcha.net https://www.gstatic.com https://www.google.com;
+#   script-src 'self' ... https://www.gstatic.com https://www.recaptcha.net https://www.google.com;
 #   frame-src ... https://www.google.com https://recaptcha.google.com https://www.recaptcha.net;
