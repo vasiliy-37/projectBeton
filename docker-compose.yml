@@ -36,6 +36,9 @@ services:
       - works_uploads:/app/uploads
     expose:
       - '3000'
+    # Прод: nginx на хосте проксирует /uploads на 127.0.0.1:3000 — полный путь /uploads/... доходит до API без web.
+    ports:
+      - '127.0.0.1:3000:3000'
 
   web:
     build:
