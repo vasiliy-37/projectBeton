@@ -162,6 +162,7 @@ export class OrderModal {
       });
       this.syncSummaryToForm();
     } catch (e: unknown) {
+      console.error('Ошибка отправки заказа:', e);
       const msg = this.messageFromSubmitError(e);
       this.formMessage.set(msg);
       this.formMessageKind.set('error');
@@ -175,8 +176,16 @@ export class OrderModal {
   }
 
   private messageFromSubmitError(e: unknown): string {
-    if (e instanceof Error && e.message === 'recaptcha_execute_timeout') {
-      return 'Не удалось загрузить проверку безопасности. Обновите страницу или попробуйте позже.';
+    if (e instanceof Error) {
+      if (e.message === 'recaptcha_execute_timeout') {
+        return 'Не удалось загрузить проверку безопасности. Обновите страницу или попробуйте позже.';
+      }
+      if (
+        e.message === 'recaptcha_script_load_failed' ||
+        e.message.includes('recaptcha script load failed')
+      ) {
+        return 'Не удалось загрузить reCAPTCHA (часто мешают блокировщик рекламы, расширения или сеть). Отключите блокировку для этого сайта или попробуйте другой браузер.';
+      }
     }
     const err = e as { error?: { message?: string } };
     const serverMsg = err?.error?.message;

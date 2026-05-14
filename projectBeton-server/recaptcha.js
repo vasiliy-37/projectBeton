@@ -30,9 +30,10 @@ async function verifyRecaptchaV3(token, minScore = 0.3) {
 
         let req;
         try {
+            /** recaptcha.net — тот же API, часто доступен, когда www.google.com режут по сети (РФ и т.п.). */
             req = https.request(
                 {
-                    hostname: 'www.google.com',
+                    hostname: 'www.recaptcha.net',
                     path: '/recaptcha/api/siteverify',
                     method: 'POST',
                     headers: {

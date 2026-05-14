@@ -72,6 +72,7 @@ export class RecaptchaService {
     });
   }
 
+  /** Сначала recaptcha.net (лучше доходит из РФ), при ошибке — google.com. */
   private loadScript(siteKey: string): Promise<void> {
     let p = this.scriptPromises.get(siteKey);
     if (p) {
@@ -83,15 +84,28 @@ export class RecaptchaService {
         resolve();
         return;
       }
-      const s = document.createElement('script');
-      s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
-      s.async = true;
-      s.defer = true;
-      s.setAttribute('data-recaptcha-v3', '1');
-      s.setAttribute('data-site-key', siteKey);
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error('recaptcha script load failed'));
-      document.head.appendChild(s);
+      const hosts = ['www.recaptcha.net', 'www.google.com'];
+      const attempt = (index: number) => {
+        if (index >= hosts.length) {
+          reject(new Error('recaptcha_script_load_failed'));
+          return;
+        }
+        const host = hosts[index];
+        const s = document.createElement('script');
+        s.src = `https://${host}/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+        s.async = true;
+        s.defer = true;
+        s.setAttribute('data-recaptcha-v3', '1');
+        s.setAttribute('data-site-key', siteKey);
+        s.setAttribute('data-recaptcha-host', host);
+        s.onload = () => resolve();
+        s.onerror = () => {
+          s.remove();
+          attempt(index + 1);
+        };
+        document.head.appendChild(s);
+      };
+      attempt(0);
     });
     this.scriptPromises.set(siteKey, p);
     return p;
