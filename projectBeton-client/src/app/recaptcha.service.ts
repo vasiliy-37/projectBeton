@@ -77,7 +77,7 @@ export class RecaptchaService {
   }
 
   /**
-   * 1) С вашего origin — /_recaptcha-proxy (см. server.ts), чтобы обойти CSP «только self».
+   * 1) С вашего origin — GET /api/recaptcha-api.js (бэкенд; тот же путь, что и POST /api/* в nginx).
    * 2–3) Прямой recaptcha.net / google.com.
    */
   private loadScript(siteKey: string): Promise<void> {
@@ -93,7 +93,7 @@ export class RecaptchaService {
       }
       const render = encodeURIComponent(siteKey);
       const urls = [
-        `${window.location.origin}/_recaptcha-proxy/recaptcha/api.js?render=${render}`,
+        `${window.location.origin}/api/recaptcha-api.js?render=${render}`,
         `https://www.recaptcha.net/recaptcha/api.js?render=${render}`,
         `https://www.google.com/recaptcha/api.js?render=${render}`,
       ];

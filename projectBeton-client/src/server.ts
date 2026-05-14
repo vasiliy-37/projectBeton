@@ -60,9 +60,6 @@ function shouldServeSpaFallback(req: express.Request): boolean {
   if (req.path.startsWith('/api')) {
     return false;
   }
-  if (req.path.startsWith('/_recaptcha-proxy')) {
-    return false;
-  }
   const pathOnly = (req.path.split('?')[0] ?? '').trim();
   if (/\.[a-z0-9]+$/i.test(pathOnly)) {
     return false;
@@ -103,23 +100,9 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
       : '[SSR] reCAPTCHA: RECAPTCHA_SITE_KEY пуст — фронт подтянет ключ из recaptcha-site-key.ts или капча отключена',
   );
   console.log(
-    '[SSR] reCAPTCHA: прокси /_recaptcha-proxy → https://www.recaptcha.net (обход жёсткого CSP script-src self)',
+    '[SSR] reCAPTCHA: api.js с origin — GET /api/recaptcha-api.js на бэкенде (см. projectBeton-server/server.js)',
   );
 }
-
-/**
- * reCAPTCHA api.js с вашего же хоста: при Content-Security-Policy script-src 'self' внешние
- * https://www.recaptcha.net/... блокируются — первый тег грузится с origin сайта.
- * Дальше скрипт Google сам тянет www.gstatic.com — его всё равно нужно разрешить в CSP (см. deploy/nginx-recaptcha-csp-snippet.txt).
- */
-app.use(
-  '/_recaptcha-proxy',
-  createProxyMiddleware({
-    target: 'https://www.recaptcha.net',
-    changeOrigin: true,
-    pathRewrite: (p) => (p.startsWith('/_recaptcha-proxy') ? p.replace(/^\/_recaptcha-proxy/, '') || '/' : p),
-  }),
-);
 
 /** Публичный site key для reCAPTCHA v3 (не секрет). Читается браузером до отправки форм. */
 app.get('/config/recaptcha.json', (_req, res) => {

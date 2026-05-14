@@ -26,6 +26,7 @@ const Work = require('./models/Work');
 const fs = require('fs/promises');
 const fssync = require('fs');
 const path = require('path');
+const https = require('https');
 const crypto = require('crypto');
 
 const UPLOADS_ROOT = path.join(__dirname, 'uploads');
@@ -269,6 +270,50 @@ if (isProduction && !corsOriginsRaw) {
 app.use(express.json({ limit: '32mb' }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
+
+/**
+ * Прокси Google reCAPTCHA v3 api.js через тот же origin, что и POST /api/* (nginx → web → api).
+ * Иначе путь /_recaptcha-proxy часто не проксируется nginx и отдаётся HTML 400.
+ * Браузер: GET /api/recaptcha-api.js?render=SITE_KEY
+ */
+app.get('/api/recaptcha-api.js', (req, res) => {
+    const raw = req.originalUrl || req.url || '';
+    const q = raw.includes('?') ? raw.slice(raw.indexOf('?')) : '';
+    const upstreamPath = '/recaptcha/api.js' + q;
+    const r = https.request(
+        {
+            hostname: 'www.recaptcha.net',
+            path: upstreamPath,
+            method: 'GET',
+            headers: {
+                'User-Agent': (typeof req.get === 'function' && req.get('user-agent')) || 'Mozilla/5.0',
+                Accept: '*/*',
+            },
+        },
+        (up) => {
+            const status = up.statusCode || 502;
+            if (status !== 200) {
+                console.warn('[api/recaptcha-api.js] upstream', status, upstreamPath);
+            }
+            res.status(status);
+            const ct = up.headers['content-type'];
+            if (ct) {
+                res.setHeader('Content-Type', ct);
+            } else {
+                res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+            }
+            res.setHeader('Cache-Control', 'public, max-age=1800');
+            up.pipe(res);
+        },
+    );
+    r.on('error', (err) => {
+        console.error('[api/recaptcha-api.js]', err.message);
+        if (!res.headersSent) {
+            res.status(502).type('application/javascript').send('/* recaptcha proxy error */');
+        }
+    });
+    r.end();
+});
 
 fssync.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
 console.log('[api] static /uploads →', UPLOADS_ROOT, '| /works →', WORKS_UPLOAD_DIR);
