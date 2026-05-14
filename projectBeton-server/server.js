@@ -316,19 +316,32 @@ app.use((req, res, next) => {
     return res.redirect(302, `${frontendBase}${suffix}`);
 });
 
+const smtpPort = Number(process.env.SMTP_PORT || '465') || 465;
+const smtpHost = process.env.SMTP_HOST?.trim() || 'smtp.gmail.com';
+/** 465 — SSL; 587 — STARTTLS (часто разрешён, если 465 режут на VPS). */
+const smtpSecure =
+    process.env.SMTP_SECURE === 'false' || process.env.SMTP_SECURE === '0'
+        ? false
+        : smtpPort === 465;
+
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // Используйте ваш SMTP-сервер
-    port: 465,
-    secure: true,
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 30000,
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
+    requireTLS: smtpPort === 587,
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    socketTimeout: 45000,
     auth: {
-        // Логин и пароль берем из вашего .env файла
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+        pass: process.env.EMAIL_PASS,
+    },
 });
+
+console.log(`[mail] SMTP ${smtpHost}:${smtpPort} secure=${smtpSecure} (задайте SMTP_HOST/SMTP_PORT/SMTP_SECURE в .env при блокировке порта)`);
+console.log(
+    `[mail] env: EMAIL_USER=${process.env.EMAIL_USER?.trim() ? 'ok' : 'MISSING'}, RECIPIENT_EMAIL=${process.env.RECIPIENT_EMAIL?.trim() ? 'ok' : 'MISSING'}, EMAIL_PASS=${String(process.env.EMAIL_PASS ?? '').trim() ? 'ok' : 'MISSING'} (в Docker переменные из env_file compose, не из файла .env внутри образа)`,
+);
 
 transporter.verify(function (error, success) {
     if (error) {
