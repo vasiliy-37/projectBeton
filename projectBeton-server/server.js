@@ -332,11 +332,34 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify(function (error, success) {
     if (error) {
-        console.error("Ошибка при проверке транспорта Nodemailer:", error);
+        console.error('Ошибка при проверке транспорта Nodemailer:', {
+            message: error.message,
+            code: error.code,
+            responseCode: error.responseCode,
+        });
     } else {
-        console.log("Nodemailer готов к отправке сообщений.");
+        console.log('Nodemailer готов к отправке сообщений.');
     }
 });
+
+function isMailConfigured() {
+    return Boolean(
+        process.env.EMAIL_USER?.trim() &&
+            String(process.env.EMAIL_PASS ?? '').trim() &&
+            process.env.RECIPIENT_EMAIL?.trim(),
+    );
+}
+
+/** Подробности только в лог сервера (docker compose logs api). */
+function logSmtpSendError(routeLabel, err) {
+    const e = err && typeof err === 'object' ? err : {};
+    const message = typeof e.message === 'string' ? e.message : String(err);
+    const code = 'code' in e ? e.code : undefined;
+    const responseCode = 'responseCode' in e ? e.responseCode : undefined;
+    const response =
+        typeof e.response === 'string' ? e.response.slice(0, 800) : undefined;
+    console.error(`[${routeLabel}] sendMail`, { message, code, responseCode, response });
+}
 
 // 1. GET /api/services - Получить все услуги (существующий маршрут)
 // Дублирующий маршрут в конце файла удален.
@@ -758,13 +781,20 @@ app.post('/api/send-order', publicFormLimiter, async (req, res) => {
         `
     };
 
+    if (!isMailConfigured()) {
+        console.error(
+            '[send-order] Нет EMAIL_USER / EMAIL_PASS / RECIPIENT_EMAIL в окружении контейнера api (файл projectBeton-server/.env + docker compose up -d --force-recreate api).',
+        );
+        return res.status(500).send({ success: false, message: 'Ошибка сервера при отправке почты.' });
+    }
+
     try {
         await transporter.sendMail(mailOptions);
         console.log(`Заказ от ${name} (${phone}) успешно отправлен.`);
         // Ответ Angular
         res.status(200).send({ success: true, message: 'Заказ успешно отправлен.' });
     } catch (error) {
-        console.error('Ошибка отправки почты:', error);
+        logSmtpSendError('send-order', error);
         // Ответ Angular с ошибкой
         res.status(500).send({ success: false, message: 'Ошибка сервера при отправке почты.' });
     }
@@ -818,6 +848,13 @@ app.post('/api/request-call', publicFormLimiter, async (req, res) => {
         `
     };
 
+    if (!isMailConfigured()) {
+        console.error(
+            '[request-call] Нет EMAIL_USER / EMAIL_PASS / RECIPIENT_EMAIL в окружении контейнера api (projectBeton-server/.env + docker compose up -d --force-recreate api).',
+        );
+        return res.status(500).send({ success: false, message: 'Ошибка сервера при отправке заявки.' });
+    }
+
     try {
         // Здесь используется 'transporter', который вы настроили ранее для Nodemailer
         await transporter.sendMail(mailOptions);
@@ -825,7 +862,7 @@ app.post('/api/request-call', publicFormLimiter, async (req, res) => {
         // Успешный ответ для Angular
         res.status(200).send({ success: true, message: 'Заявка на звонок отправлена.' });
     } catch (error) {
-        console.error('❌ Ошибка отправки почты (Заявка на звонок):', error);
+        logSmtpSendError('request-call', error);
         // Ответ с ошибкой для Angular
         res.status(500).send({ success: false, message: 'Ошибка сервера при отправке заявки.' });
     }
