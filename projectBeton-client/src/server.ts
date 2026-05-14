@@ -93,6 +93,16 @@ const apiOrigin = resolveApiOrigin();
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
   console.log(`[SSR] Прокси /api → ${apiOrigin} (задайте API_ORIGIN или BACKEND_PORT, если порт не 3000)`);
 }
+
+/** Картинки работ: целиком /uploads/... → API. Без mount: иначе Express/HPM иногда шлёт на API только /works/... → 302 с фронта. */
+app.use(
+  createProxyMiddleware({
+    pathFilter: (pathname) => pathname.startsWith('/uploads'),
+    target: apiOrigin,
+    changeOrigin: true,
+  }),
+);
+
 app.use(
   '/api',
   createProxyMiddleware({
@@ -101,18 +111,6 @@ app.use(
     // Express removes '/api' from req.url for mounted middleware.
     // Backend routes are defined as '/api/...', so add prefix back.
     pathRewrite: (path) => `/api${path}`,
-  }),
-);
-
-/** Картинки работ: отдаёт API (файлы в uploads). Без прокси запросы к :4000/upload/... не дойдут до бэкенда */
-app.use(
-  '/uploads',
-  createProxyMiddleware({
-    target: apiOrigin,
-    changeOrigin: true,
-    // Как у /api: при mount Express передаёт path без префикса — иначе на API уходит /works/... вместо /uploads/works/... → 404.
-    pathRewrite: (path) =>
-      path.startsWith('/uploads') ? path : `/uploads${path.startsWith('/') ? path : `/${path}`}`,
   }),
 );
 
