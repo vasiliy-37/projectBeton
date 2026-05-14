@@ -14,7 +14,7 @@
             @for (work of displayWorks(); track work._id) {
             <swiper-slide>
                 <div class="work-card">
-                    <img [src]="work.imageUrl" [alt]="work.title" loading="lazy">
+                    <img [src]="workService.normalizeWorkImageUrl(work.imageUrl)" [alt]="work.title" loading="lazy">
                     <div class="work-info">
                         <h3>{{ work.title }}</h3>
                     </div>

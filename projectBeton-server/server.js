@@ -148,7 +148,9 @@ async function saveWorkImageFromDataUrl(dataUrl) {
         throw err;
     }
     const buf = Buffer.from(match[1], 'base64');
-    if (buf.length > 8 * 1024 * 1024) {
+    /** Лимит после base64-декодирования (исходный JPEG 8+ МБ в JSON занимает ~11 МБ). */
+    const maxDecodedBytes = 15 * 1024 * 1024;
+    if (buf.length > maxDecodedBytes) {
         const err = new Error('TOO_LARGE');
         throw err;
     }
@@ -263,7 +265,8 @@ if (isProduction && !corsOriginsRaw) {
     );
 }
 
-app.use(express.json({ limit: '10mb' }));
+/** Достаточно для POST /api/works с data URL (base64 увеличивает размер ~на 33%). */
+app.use(express.json({ limit: '32mb' }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
 
@@ -572,26 +575,42 @@ app.post('/api/delete-contact-email', authenticateToken, (req, res) => {
 });
 
 app.post('/api/update-price', authenticateToken, (req, res) => {
-    const { _id, price } = req.body; // Поле type нам больше не нужно для выбора модели
+    const { _id, price, brand, category } = req.body;
 
-    // Мы используем модель Brand (которая ссылается на ./models/product)
-    Brand.findByIdAndUpdate(
-        _id,
-        { price: price },
-        { new: true }
-    )
+    if (!_id) {
+        return res.status(400).json({ error: 'Не указан _id.' });
+    }
+
+    const priceNum = Number(price);
+    if (!Number.isFinite(priceNum) || priceNum < 0) {
+        return res.status(400).json({ error: 'Цена должна быть числом не меньше 0.' });
+    }
+
+    const update = { price: priceNum };
+    const brandTrim = typeof brand === 'string' ? brand.trim() : '';
+    const categoryTrim = typeof category === 'string' ? category.trim() : '';
+    if (brandTrim) {
+        update.brand = brandTrim;
+    }
+    if (categoryTrim) {
+        update.category = categoryTrim;
+    }
+
+    Brand.findByIdAndUpdate(_id, update, { new: true, runValidators: true })
         .then(updatedDoc => {
             if (!updatedDoc) {
                 return res.status(404).json({ error: 'Документ не найден.' });
             }
             res.json({
-                message: `Цена для ${updatedDoc.brand} успешно обновлена.`,
-                newPrice: updatedDoc.price
+                message: `Данные для ${updatedDoc.brand} успешно обновлены.`,
+                newPrice: updatedDoc.price,
+                brand: updatedDoc.brand,
+                category: updatedDoc.category
             });
         })
         .catch(err => {
             console.error('Ошибка при обновлении цены:', err);
-            res.status(500).json({ error: 'Ошибка сервера при обновлении цены.' });
+            res.status(500).json({ error: 'Ошибка сервера при обновлении цены.', details: err.message });
         });
 });
 

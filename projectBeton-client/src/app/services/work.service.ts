@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
 
 // Описываем, как выглядит объект "Работа"
 export interface WorkItem {
@@ -22,19 +23,38 @@ export class WorkService {
   // Метод, чтобы компоненты могли просто читать данные
   public works = this.worksSignal.asReadonly();
 
+  /**
+   * Путь должен начинаться с /. Иначе на странице /admin/... браузер запросит /admin/uploads/... → 404.
+   */
+  normalizeWorkImageUrl(url: string | undefined | null): string {
+    if (url == null || url === '') {
+      return '';
+    }
+    const u = String(url).trim();
+    if (/^https?:\/\//i.test(u)) {
+      return u;
+    }
+    return u.startsWith('/') ? u : `/${u}`;
+  }
+
+  private mapWorkItem(w: WorkItem): WorkItem {
+    return { ...w, imageUrl: this.normalizeWorkImageUrl(w.imageUrl) };
+  }
+
   // 1. Получить все работы из базы
   loadAll() {
-    this.http.get<WorkItem[]>('/api/works').subscribe(data => {
-      this.worksSignal.set(data);
+    this.http.get<WorkItem[]>('/api/works').subscribe((data) => {
+      this.worksSignal.set(data.map((w) => this.mapWorkItem(w)));
     });
   }
 
   // 2. Отправить новую работу: сервер сохранит файл; тело — title + imageData (data URL с админки)
-  create(payload: { title: string; imageData: string }) {
-    return this.http.post<WorkItem>('/api/works', payload).subscribe((newWork) => {
-      // Обновляем сигнал: добавляем новую работу к текущим
-      this.worksSignal.update(current => [...current, newWork]);
-    });
+  create(payload: { title: string; imageData: string }): Observable<WorkItem> {
+    return this.http.post<WorkItem>('/api/works', payload).pipe(
+      tap((newWork) => {
+        this.worksSignal.update((current) => [...current, this.mapWorkItem(newWork)]);
+      }),
+    );
   }
 
   // 3. Удалить работу
