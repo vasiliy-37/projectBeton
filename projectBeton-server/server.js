@@ -271,6 +271,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 fssync.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
+console.log('[api] static /uploads →', UPLOADS_ROOT, '| /works →', WORKS_UPLOAD_DIR);
 
 app.use(
     '/uploads',

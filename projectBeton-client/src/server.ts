@@ -92,6 +92,7 @@ function resolveApiOrigin(): string {
 const apiOrigin = resolveApiOrigin();
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
   console.log(`[SSR] Прокси /api → ${apiOrigin} (задайте API_ORIGIN или BACKEND_PORT, если порт не 3000)`);
+  console.log(`[SSR] Прокси /uploads: pathFilter (полный путь) → ${apiOrigin}`);
 }
 
 /** Картинки работ: целиком /uploads/... → API. Без mount: иначе Express/HPM иногда шлёт на API только /works/... → 302 с фронта. */
