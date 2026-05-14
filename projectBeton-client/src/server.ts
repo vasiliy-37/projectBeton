@@ -110,6 +110,9 @@ app.use(
   createProxyMiddleware({
     target: apiOrigin,
     changeOrigin: true,
+    // Как у /api: при mount Express передаёт path без префикса — иначе на API уходит /works/... вместо /uploads/works/... → 404.
+    pathRewrite: (path) =>
+      path.startsWith('/uploads') ? path : `/uploads${path.startsWith('/') ? path : `/${path}`}`,
   }),
 );
 
