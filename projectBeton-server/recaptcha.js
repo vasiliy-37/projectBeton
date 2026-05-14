@@ -7,6 +7,8 @@ const https = require('https');
  * — либо уберите RECAPTCHA_SECRET_KEY,
  * — либо задайте RECAPTCHA_ALLOW_NO_CLIENT_TOKEN=true (осознанный риск спама; оставьте жёсткий rate limit).
  *
+ * siteverify вызывается сначала на www.recaptcha.net, при сетевой ошибке — повтор на www.google.com.
+ *
  * @param {string|undefined} token — поле recaptchaToken из тела запроса
  * @param {number} [minScore=0.3] — порог score (0..1)
  * @returns {Promise<{ ok: boolean, skipped?: boolean, reason?: string }>}
@@ -29,24 +31,41 @@ async function verifyRecaptchaV3(token, minScore = 0.3) {
     }
 
     const body = new URLSearchParams({ secret, response: tokenStr }).toString();
-    /** Без таймаута запрос к Google может «висеть» бесконечно (фаервол, сеть) — браузер показывает pending. */
     const CONNECT_MS = 10000;
     const RESPONSE_BODY_MS = 10000;
 
+    const hosts = ['www.recaptcha.net', 'www.google.com'];
+    let lastTransportReason = 'timeout';
+
+    for (const hostname of hosts) {
+        const r = await siteverifyOnce(hostname, body, minScore, CONNECT_MS, RESPONSE_BODY_MS);
+        if (r.done) {
+            return r.result;
+        }
+        lastTransportReason = r.transportReason || lastTransportReason;
+        console.warn(`[recaptcha] siteverify ${hostname} transport: ${lastTransportReason}, пробуем запасной хост`);
+    }
+
+    return { ok: false, reason: lastTransportReason };
+}
+
+/**
+ * @returns {Promise<{ done: true, result: { ok: boolean, reason?: string } } | { done: false, transportReason: string }>}
+ */
+function siteverifyOnce(hostname, body, minScore, connectMs, bodyMs) {
     return new Promise((resolve) => {
         let settled = false;
-        const done = (result) => {
+        const finish = (out) => {
             if (settled) return;
             settled = true;
-            resolve(result);
+            resolve(out);
         };
 
         let req;
         try {
-            /** recaptcha.net — тот же API, часто доступен, когда www.google.com режут по сети (РФ и т.п.). */
             req = https.request(
                 {
-                    hostname: 'www.recaptcha.net',
+                    hostname,
                     path: '/recaptcha/api/siteverify',
                     method: 'POST',
                     headers: {
@@ -55,9 +74,9 @@ async function verifyRecaptchaV3(token, minScore = 0.3) {
                     },
                 },
                 (res) => {
-                    res.setTimeout(RESPONSE_BODY_MS, () => {
+                    res.setTimeout(bodyMs, () => {
                         res.destroy();
-                        done({ ok: false, reason: 'timeout' });
+                        finish({ done: false, transportReason: 'timeout' });
                     });
                     let raw = '';
                     res.on('data', (chunk) => {
@@ -68,29 +87,29 @@ async function verifyRecaptchaV3(token, minScore = 0.3) {
                         try {
                             const data = JSON.parse(raw);
                             if (!data.success) {
-                                return done({ ok: false, reason: 'verify_failed' });
+                                return finish({ done: true, result: { ok: false, reason: 'verify_failed' } });
                             }
                             const score = typeof data.score === 'number' ? data.score : 1;
                             if (score < minScore) {
-                                return done({ ok: false, reason: 'low_score' });
+                                return finish({ done: true, result: { ok: false, reason: 'low_score' } });
                             }
-                            done({ ok: true });
+                            finish({ done: true, result: { ok: true } });
                         } catch {
-                            done({ ok: false, reason: 'parse_error' });
+                            finish({ done: true, result: { ok: false, reason: 'parse_error' } });
                         }
                     });
-                    res.on('error', () => done({ ok: false, reason: 'network' }));
+                    res.on('error', () => finish({ done: false, transportReason: 'network' }));
                 },
             );
         } catch {
-            return done({ ok: false, reason: 'network' });
+            return finish({ done: false, transportReason: 'network' });
         }
 
-        req.setTimeout(CONNECT_MS, () => {
+        req.setTimeout(connectMs, () => {
             req.destroy();
-            done({ ok: false, reason: 'timeout' });
+            finish({ done: false, transportReason: 'timeout' });
         });
-        req.on('error', () => done({ ok: false, reason: 'network' }));
+        req.on('error', () => finish({ done: false, transportReason: 'network' }));
         req.write(body);
         req.end();
     });
