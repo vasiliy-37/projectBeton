@@ -9,7 +9,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors')
 const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
-const { verifyRecaptchaV3 } = require('./recaptcha');
+const { verifySmartCaptchaToken, getClientIp } = require('./smartcaptcha');
 
 const app = express();
 
@@ -26,7 +26,6 @@ const Work = require('./models/Work');
 const fs = require('fs/promises');
 const fssync = require('fs');
 const path = require('path');
-const https = require('https');
 const crypto = require('crypto');
 
 const UPLOADS_ROOT = path.join(__dirname, 'uploads');
@@ -270,50 +269,6 @@ if (isProduction && !corsOriginsRaw) {
 app.use(express.json({ limit: '32mb' }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
-
-/**
- * Прокси Google reCAPTCHA v3 api.js через тот же origin, что и POST /api/* (nginx → web → api).
- * Иначе путь /_recaptcha-proxy часто не проксируется nginx и отдаётся HTML 400.
- * Браузер: GET /api/recaptcha-api.js?render=SITE_KEY
- */
-app.get('/api/recaptcha-api.js', (req, res) => {
-    const raw = req.originalUrl || req.url || '';
-    const q = raw.includes('?') ? raw.slice(raw.indexOf('?')) : '';
-    const upstreamPath = '/recaptcha/api.js' + q;
-    const r = https.request(
-        {
-            hostname: 'www.recaptcha.net',
-            path: upstreamPath,
-            method: 'GET',
-            headers: {
-                'User-Agent': (typeof req.get === 'function' && req.get('user-agent')) || 'Mozilla/5.0',
-                Accept: '*/*',
-            },
-        },
-        (up) => {
-            const status = up.statusCode || 502;
-            if (status !== 200) {
-                console.warn('[api/recaptcha-api.js] upstream', status, upstreamPath);
-            }
-            res.status(status);
-            const ct = up.headers['content-type'];
-            if (ct) {
-                res.setHeader('Content-Type', ct);
-            } else {
-                res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-            }
-            res.setHeader('Cache-Control', 'public, max-age=1800');
-            up.pipe(res);
-        },
-    );
-    r.on('error', (err) => {
-        console.error('[api/recaptcha-api.js]', err.message);
-        if (!res.headersSent) {
-            res.status(502).type('application/javascript').send('/* recaptcha proxy error */');
-        }
-    });
-    r.end();
-});
 
 fssync.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
 console.log('[api] static /uploads →', UPLOADS_ROOT, '| /works →', WORKS_UPLOAD_DIR);
@@ -736,7 +691,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.post('/api/send-order', publicFormLimiter, async (req, res) => {
-    const captcha = await verifyRecaptchaV3(req.body?.recaptchaToken);
+    const captcha = await verifySmartCaptchaToken(req.body?.recaptchaToken, getClientIp(req));
     if (!captcha.ok) {
         if (captcha.reason === 'timeout') {
             return res.status(503).send({
@@ -747,17 +702,17 @@ app.post('/api/send-order', publicFormLimiter, async (req, res) => {
         }
         if (captcha.reason === 'missing_token') {
             console.warn(
-                '[send-order] Пустой токен reCAPTCHA. Проверьте nginx CSP (script-src: www.recaptcha.net www.gstatic.com), блокировщики. Обход: RECAPTCHA_ALLOW_NO_CLIENT_TOKEN=true или убрать RECAPTCHA_SECRET_KEY.',
+                '[send-order] Пустой токен SmartCaptcha. Пройдите проверку «Я не робот», проверьте домен в консоли Yandex Cloud, блокировщики. Обход: SMARTCAPTCHA_ALLOW_NO_CLIENT_TOKEN=true или убрать SMARTCAPTCHA_SERVER_KEY.',
             );
             return res.status(400).send({
                 success: false,
                 message:
-                    'Браузер не передал проверку reCAPTCHA (часто блокировщик рекламы, расширение или настройки сети). Отключите блокировку для этого сайта, попробуйте другой браузер или мобильный интернет.',
+                    'Пройдите проверку «Я не робот» (SmartCaptcha). Если кнопки нет — обновите страницу, отключите блокировщик рекламы или попробуйте другой браузер.',
             });
         }
         return res.status(400).send({
             success: false,
-            message: 'Проверка reCAPTCHA не пройдена. Обновите страницу и попробуйте снова.',
+            message: 'Проверка SmartCaptcha не пройдена. Обновите страницу и попробуйте снова.',
         });
     }
 
@@ -819,7 +774,7 @@ app.post('/api/send-order', publicFormLimiter, async (req, res) => {
 // Для обработки заявки на обратный звонок
 // ----------------------------------------
 app.post('/api/request-call', publicFormLimiter, async (req, res) => {
-    const captcha = await verifyRecaptchaV3(req.body?.recaptchaToken);
+    const captcha = await verifySmartCaptchaToken(req.body?.recaptchaToken, getClientIp(req));
     if (!captcha.ok) {
         if (captcha.reason === 'timeout') {
             return res.status(503).send({
@@ -830,17 +785,17 @@ app.post('/api/request-call', publicFormLimiter, async (req, res) => {
         }
         if (captcha.reason === 'missing_token') {
             console.warn(
-                '[request-call] Пустой токен reCAPTCHA. CSP/блокировщики. Обход: RECAPTCHA_ALLOW_NO_CLIENT_TOKEN=true или убрать RECAPTCHA_SECRET_KEY.',
+                '[request-call] Пустой токен SmartCaptcha. Обход: SMARTCAPTCHA_ALLOW_NO_CLIENT_TOKEN=true или убрать SMARTCAPTCHA_SERVER_KEY.',
             );
             return res.status(400).send({
                 success: false,
                 message:
-                    'Браузер не передал проверку reCAPTCHA (часто блокировщик рекламы, расширение или настройки сети). Отключите блокировку для этого сайта, попробуйте другой браузер или мобильный интернет.',
+                    'Пройдите проверку «Я не робот» (SmartCaptcha). Если кнопки нет — обновите страницу или отключите блокировщик рекламы.',
             });
         }
         return res.status(400).send({
             success: false,
-            message: 'Проверка reCAPTCHA не пройдена. Обновите страницу и попробуйте снова.',
+            message: 'Проверка SmartCaptcha не пройдена. Обновите страницу и попробуйте снова.',
         });
     }
     const { name, phone } = req.body;

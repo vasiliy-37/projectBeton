@@ -1,9 +1,19 @@
-import { Component, Output, EventEmitter, Input, signal } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  Input,
+  signal,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { OrderService } from '../../orderService';
-import { RecaptchaService } from '../../recaptcha.service';
+import { SmartCaptchaService } from '../../smartcaptcha.service';
 
 @Component({
   selector: 'app-order-modal',
@@ -12,8 +22,9 @@ import { RecaptchaService } from '../../recaptcha.service';
   templateUrl: './order-modal.html',
   styleUrl: './order-modal.less',
 })
-export class OrderModal {
+export class OrderModal implements AfterViewInit, OnDestroy {
   @Output() closeModal = new EventEmitter<void>();
+  @ViewChild('captchaHost') captchaHost?: ElementRef<HTMLElement>;
 
   protected readonly formMessage = signal<string | null>(null);
   protected readonly formMessageKind = signal<'success' | 'error' | null>(null);
@@ -105,7 +116,7 @@ export class OrderModal {
   constructor(
     private fb: FormBuilder,
     private orderService: OrderService,
-    private recaptcha: RecaptchaService,
+    private smartCaptcha: SmartCaptchaService,
   ) {
     this.orderForm = this.fb.group({
       name: ['', Validators.required],
@@ -127,6 +138,17 @@ export class OrderModal {
     });
   }
 
+  async ngAfterViewInit(): Promise<void> {
+    const el = this.captchaHost?.nativeElement;
+    if (el) {
+      await this.smartCaptcha.initSlot('order', el);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.smartCaptcha.destroySlot('order');
+  }
+
   async onSubmit(): Promise<void> {
     this.formMessage.set(null);
     this.formMessageKind.set(null);
@@ -136,10 +158,17 @@ export class OrderModal {
     }
     this.isSubmitting.set(true);
     try {
-      const recaptchaToken = await this.recaptcha.execute('order');
+      const clientKey = await this.smartCaptcha.resolveClientKey();
+      const recaptchaToken = this.smartCaptcha.getToken('order');
+      if (clientKey && !recaptchaToken) {
+        this.formMessage.set('Пройдите проверку «Я не робот».');
+        this.formMessageKind.set('error');
+        return;
+      }
       const raw = this.orderForm.value;
       const { consentPdn: _c, ...payload } = raw;
       await this.orderService.sendOrder({ ...payload, recaptchaToken });
+      this.smartCaptcha.resetSlot('order');
       this.formMessage.set('Заказ отправлен. Мы свяжемся с вами для уточнения деталей.');
       this.formMessageKind.set('success');
       this.orderForm.reset({
@@ -177,14 +206,11 @@ export class OrderModal {
 
   private messageFromSubmitError(e: unknown): string {
     if (e instanceof Error) {
-      if (e.message === 'recaptcha_execute_timeout') {
-        return 'Не удалось загрузить проверку безопасности. Обновите страницу или попробуйте позже.';
-      }
       if (
-        e.message === 'recaptcha_script_load_failed' ||
-        e.message.includes('recaptcha script load failed')
+        e.message === 'smartcaptcha_script_load_failed' ||
+        e.message.includes('smartcaptcha_script_load_failed')
       ) {
-        return 'Не удалось загрузить reCAPTCHA (часто мешают блокировщик рекламы, расширения или сеть). Отключите блокировку для этого сайта или попробуйте другой браузер.';
+        return 'Не удалось загрузить SmartCaptcha (часто мешают блокировщик рекламы или CSP в nginx). Отключите блокировку для этого сайта или попробуйте другой браузер.';
       }
     }
     const err = e as { error?: { message?: string } };

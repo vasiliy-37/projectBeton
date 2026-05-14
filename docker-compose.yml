@@ -1,7 +1,7 @@
 # Запуск из каталога projectBeton-main:
 #   cp .env.example .env && заполнить NG_ALLOWED_HOSTS для продакшена (домен сайта)
-#   reCAPTCHA v3: в .env задайте RECAPTCHA_SITE_KEY (публичный ключ для web) и в projectBeton-server/.env — RECAPTCHA_SECRET_KEY
-#   Если скрипт reCAPTCHA в браузере не грузится: в projectBeton-server/.env можно RECAPTCHA_ALLOW_NO_CLIENT_TOKEN=true (риск спама) или убрать RECAPTCHA_SECRET_KEY; см. deploy/nginx-recaptcha-csp-snippet.txt для nginx CSP
+#   Яндекс SmartCaptcha: в .env задайте SMARTCAPTCHA_CLIENT_KEY (публичный ключ для web) и в projectBeton-server/.env — SMARTCAPTCHA_SERVER_KEY
+#   Если токен не доходит: в projectBeton-server/.env можно SMARTCAPTCHA_ALLOW_NO_CLIENT_TOKEN=true (риск спама) или убрать SMARTCAPTCHA_SERVER_KEY; см. deploy/nginx-recaptcha-csp-snippet.txt для nginx CSP
 #   cp projectBeton-server/.env.example projectBeton-server/.env   # JWT, почта, CORS, FRONTEND_URL API
 #   docker compose up -d --build
 #
@@ -52,8 +52,8 @@ services:
       TRUST_PROXY: '1'
       API_ORIGIN: http://api:3000
       PORT: '4000'
-      # Публичный ключ reCAPTCHA v3 (из той же пары, что RECAPTCHA_SECRET_KEY на api). Пусто — капча на фронте не грузится.
-      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
+      # Клиентский ключ SmartCaptcha (пара к SMARTCAPTCHA_SERVER_KEY на api). Пусто — капча на фронте не грузится.
+      SMARTCAPTCHA_CLIENT_KEY: ${SMARTCAPTCHA_CLIENT_KEY:-}
       # Список доменов для Angular SSR (через запятую). Локально в Docker:
       NG_ALLOWED_HOSTS: ${NG_ALLOWED_HOSTS:-localhost,127.0.0.1}
     depends_on:

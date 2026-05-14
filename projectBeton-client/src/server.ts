@@ -93,25 +93,22 @@ const apiOrigin = resolveApiOrigin();
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
   console.log(`[SSR] Прокси /api → ${apiOrigin} (задайте API_ORIGIN или BACKEND_PORT, если порт не 3000)`);
   console.log(`[SSR] Прокси /uploads: pathFilter (полный путь) → ${apiOrigin}`);
-  const rk = process.env['RECAPTCHA_SITE_KEY']?.trim();
+  const ck = process.env['SMARTCAPTCHA_CLIENT_KEY']?.trim();
   console.log(
-    rk
-      ? '[SSR] reCAPTCHA: публичный ключ задан (RECAPTCHA_SITE_KEY), /config/recaptcha.json'
-      : '[SSR] reCAPTCHA: RECAPTCHA_SITE_KEY пуст — фронт подтянет ключ из recaptcha-site-key.ts или капча отключена',
-  );
-  console.log(
-    '[SSR] reCAPTCHA: api.js с origin — GET /api/recaptcha-api.js на бэкенде (см. projectBeton-server/server.js)',
+    ck
+      ? '[SSR] SmartCaptcha: клиентский ключ задан (SMARTCAPTCHA_CLIENT_KEY), /config/smartcaptcha.json'
+      : '[SSR] SmartCaptcha: SMARTCAPTCHA_CLIENT_KEY пуст — фронт подтянет ключ из smartcaptcha-client-key.ts или капча отключена',
   );
 }
 
-/** Публичный site key для reCAPTCHA v3 (не секрет). Читается браузером до отправки форм. */
-app.get('/config/recaptcha.json', (_req, res) => {
-  const siteKey = process.env['RECAPTCHA_SITE_KEY']?.trim() ?? '';
+/** Публичный клиентский ключ SmartCaptcha (не секрет). */
+app.get('/config/smartcaptcha.json', (_req, res) => {
+  const clientKey = process.env['SMARTCAPTCHA_CLIENT_KEY']?.trim() ?? '';
   res
     .status(200)
     .type('application/json')
     .set('Cache-Control', 'public, max-age=300')
-    .send(JSON.stringify({ siteKey }));
+    .send(JSON.stringify({ clientKey }));
 });
 
 /** Картинки работ: целиком /uploads/... → API. Без mount: иначе Express/HPM иногда шлёт на API только /works/... → 302 с фронта. */

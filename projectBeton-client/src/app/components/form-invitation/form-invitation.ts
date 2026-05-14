@@ -1,9 +1,18 @@
-import { Component, Output, EventEmitter, signal } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  signal,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { OrderService } from '../../orderService';
-import { RecaptchaService } from '../../recaptcha.service';
+import { SmartCaptchaService } from '../../smartcaptcha.service';
 
 @Component({
   selector: 'app-form-invitation',
@@ -12,8 +21,9 @@ import { RecaptchaService } from '../../recaptcha.service';
   templateUrl: './form-invitation.html',
   styleUrl: './form-invitation.less',
 })
-export class FormInvitation {
+export class FormInvitation implements AfterViewInit, OnDestroy {
   @Output() closeModal = new EventEmitter<void>();
+  @ViewChild('captchaHost') captchaHost?: ElementRef<HTMLElement>;
 
   protected readonly formMessage = signal<string | null>(null);
   protected readonly formMessageKind = signal<'success' | 'error' | null>(null);
@@ -24,13 +34,24 @@ export class FormInvitation {
   constructor(
     private fb: FormBuilder,
     private orderService: OrderService,
-    private recaptcha: RecaptchaService,
+    private smartCaptcha: SmartCaptchaService,
   ) {
     this.contactForm = this.fb.group({
       name: ['', Validators.required],
       phone: ['', [Validators.required, Validators.pattern('[0-9]{10,}')]],
       consentPdn: [false, Validators.requiredTrue],
     });
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    const el = this.captchaHost?.nativeElement;
+    if (el) {
+      await this.smartCaptcha.initSlot('callback', el);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.smartCaptcha.destroySlot('callback');
   }
 
   async onSubmit(): Promise<void> {
@@ -42,10 +63,17 @@ export class FormInvitation {
     }
     this.isSubmitting.set(true);
     try {
-      const recaptchaToken = await this.recaptcha.execute('callback');
+      const clientKey = await this.smartCaptcha.resolveClientKey();
+      const recaptchaToken = this.smartCaptcha.getToken('callback');
+      if (clientKey && !recaptchaToken) {
+        this.formMessage.set('Пройдите проверку «Я не робот».');
+        this.formMessageKind.set('error');
+        return;
+      }
       const raw = this.contactForm.value;
       const { consentPdn: _c, ...payload } = raw;
       await this.orderService.requestCall({ ...payload, recaptchaToken });
+      this.smartCaptcha.resetSlot('callback');
       this.formMessage.set('Заявка отправлена. Мы перезвоним в рабочее время.');
       this.formMessageKind.set('success');
       this.contactForm.reset({ name: '', phone: '', consentPdn: false });
@@ -65,14 +93,11 @@ export class FormInvitation {
 
   private messageFromSubmitError(e: unknown): string {
     if (e instanceof Error) {
-      if (e.message === 'recaptcha_execute_timeout') {
-        return 'Не удалось загрузить проверку безопасности. Обновите страницу или попробуйте позже.';
-      }
       if (
-        e.message === 'recaptcha_script_load_failed' ||
-        e.message.includes('recaptcha script load failed')
+        e.message === 'smartcaptcha_script_load_failed' ||
+        e.message.includes('smartcaptcha_script_load_failed')
       ) {
-        return 'Не удалось загрузить reCAPTCHA (часто мешают блокировщик рекламы, расширения или сеть). Отключите блокировку для этого сайта или попробуйте другой браузер.';
+        return 'Не удалось загрузить SmartCaptcha (часто мешают блокировщик рекламы или CSP в nginx). Отключите блокировку для этого сайта или попробуйте другой браузер.';
       }
     }
     const err = e as { error?: { message?: string } };

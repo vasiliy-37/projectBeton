@@ -1,16 +1,13 @@
-# Фрагмент для nginx: если reCAPTCHA не грузится, часто виноват заголовок Content-Security-Policy.
+# Фрагмент для nginx: Content-Security-Policy и Яндекс SmartCaptcha.
 #
-# Сайт грузит api.js через бэкенд на том же пути, что и API: GET /api/recaptcha-api.js?render=...
-# (см. projectBeton-server/server.js). Первый script может уложиться в script-src 'self'.
-#
-# После загрузки api.js Google подтягивает код с www.gstatic.com — без него капча не оживёт.
+# Скрипт виджета: https://smartcaptcha.yandexcloud.net/captcha.js
 #
 # В script-src добавьте как минимум:
-#   'self' https://www.gstatic.com https://www.recaptcha.net https://www.google.com
+#   'self' https://smartcaptcha.yandexcloud.net
 #
-# В frame-src (значок / виджет v3):
-#   https://www.google.com https://recaptcha.google.com https://www.recaptcha.net
+# Для всплывающего окна задания (challenge) может понадобиться frame-src:
+#   https://smartcaptcha.yandexcloud.net
 #
 # Пример только добавок (остальная политика у вас своя):
-#   script-src 'self' ... https://www.gstatic.com https://www.recaptcha.net https://www.google.com;
-#   frame-src ... https://www.google.com https://recaptcha.google.com https://www.recaptcha.net;
+#   script-src 'self' ... https://smartcaptcha.yandexcloud.net;
+#   frame-src ... https://smartcaptcha.yandexcloud.net;

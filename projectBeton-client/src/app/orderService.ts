@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 interface ContactData {
   name: string;
   phone: string;
-  /** Опционально: Google reCAPTCHA v3 */
+  /** Токен Яндекс SmartCaptcha (поле в API по-прежнему `recaptchaToken`). */
   recaptchaToken?: string;
 }
 
@@ -25,7 +25,7 @@ interface OrderData {
   pumpHours?: number;
   pumpCost?: number;
   finalTotal?: number;
-  /** Опционально: Google reCAPTCHA v3 */
+  /** Токен Яндекс SmartCaptcha (поле в API по-прежнему `recaptchaToken`). */
   recaptchaToken?: string;
 }
 
