@@ -320,6 +320,9 @@ const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com', // Используйте ваш SMTP-сервер
     port: 465,
     secure: true,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 30000,
     auth: {
         // Логин и пароль берем из вашего .env файла
         user: process.env.EMAIL_USER,
@@ -690,6 +693,13 @@ app.post('/api/logout', (req, res) => {
 app.post('/api/send-order', publicFormLimiter, async (req, res) => {
     const captcha = await verifyRecaptchaV3(req.body?.recaptchaToken);
     if (!captcha.ok) {
+        if (captcha.reason === 'timeout') {
+            return res.status(503).send({
+                success: false,
+                message:
+                    'Сервис проверки защиты не ответил вовремя. Попробуйте через минуту или позвоните нам.',
+            });
+        }
         return res.status(400).send({
             success: false,
             message: 'Проверка reCAPTCHA не пройдена. Обновите страницу и попробуйте снова.',
@@ -756,6 +766,13 @@ app.post('/api/send-order', publicFormLimiter, async (req, res) => {
 app.post('/api/request-call', publicFormLimiter, async (req, res) => {
     const captcha = await verifyRecaptchaV3(req.body?.recaptchaToken);
     if (!captcha.ok) {
+        if (captcha.reason === 'timeout') {
+            return res.status(503).send({
+                success: false,
+                message:
+                    'Сервис проверки защиты не ответил вовремя. Попробуйте через минуту или позвоните нам.',
+            });
+        }
         return res.status(400).send({
             success: false,
             message: 'Проверка reCAPTCHA не пройдена. Обновите страницу и попробуйте снова.',

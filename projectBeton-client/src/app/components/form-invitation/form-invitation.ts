@@ -50,9 +50,9 @@ export class FormInvitation {
       this.formMessageKind.set('success');
       this.contactForm.reset({ name: '', phone: '', consentPdn: false });
       setTimeout(() => this.closeModal.emit(), 2200);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Ошибка отправки заявки:', error);
-      this.formMessage.set('Не удалось отправить заявку. Попробуйте позже или позвоните нам.');
+      this.formMessage.set(this.messageFromSubmitError(error));
       this.formMessageKind.set('error');
     } finally {
       this.isSubmitting.set(false);
@@ -61,5 +61,17 @@ export class FormInvitation {
 
   close(): void {
     this.closeModal.emit();
+  }
+
+  private messageFromSubmitError(e: unknown): string {
+    if (e instanceof Error && e.message === 'recaptcha_execute_timeout') {
+      return 'Не удалось загрузить проверку безопасности. Обновите страницу или попробуйте позже.';
+    }
+    const err = e as { error?: { message?: string } };
+    const serverMsg = err?.error?.message;
+    if (typeof serverMsg === 'string' && serverMsg.trim() !== '') {
+      return serverMsg;
+    }
+    return 'Не удалось отправить заявку. Попробуйте позже или позвоните нам.';
   }
 }

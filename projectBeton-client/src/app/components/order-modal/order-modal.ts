@@ -161,8 +161,9 @@ export class OrderModal {
         finalTotal: 0,
       });
       this.syncSummaryToForm();
-    } catch {
-      this.formMessage.set('Не удалось отправить заказ. Проверьте соединение и попробуйте ещё раз.');
+    } catch (e: unknown) {
+      const msg = this.messageFromSubmitError(e);
+      this.formMessage.set(msg);
       this.formMessageKind.set('error');
     } finally {
       this.isSubmitting.set(false);
@@ -171,6 +172,18 @@ export class OrderModal {
 
   close(): void {
     this.closeModal.emit();
+  }
+
+  private messageFromSubmitError(e: unknown): string {
+    if (e instanceof Error && e.message === 'recaptcha_execute_timeout') {
+      return 'Не удалось загрузить проверку безопасности. Обновите страницу или попробуйте позже.';
+    }
+    const err = e as { error?: { message?: string } };
+    const serverMsg = err?.error?.message;
+    if (typeof serverMsg === 'string' && serverMsg.trim() !== '') {
+      return serverMsg;
+    }
+    return 'Не удалось отправить заказ. Проверьте соединение и попробуйте ещё раз.';
   }
 
   private syncSummaryToForm(): void {

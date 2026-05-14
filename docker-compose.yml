@@ -1,5 +1,6 @@
 # Запуск из каталога projectBeton-main:
 #   cp .env.example .env && заполнить NG_ALLOWED_HOSTS для продакшена (домен сайта)
+#   reCAPTCHA v3: в .env задайте RECAPTCHA_SITE_KEY (публичный ключ для web) и в projectBeton-server/.env — RECAPTCHA_SECRET_KEY
 #   cp projectBeton-server/.env.example projectBeton-server/.env   # JWT, почта, CORS, FRONTEND_URL API
 #   docker compose up -d --build
 #
@@ -50,6 +51,8 @@ services:
       TRUST_PROXY: '1'
       API_ORIGIN: http://api:3000
       PORT: '4000'
+      # Публичный ключ reCAPTCHA v3 (из той же пары, что RECAPTCHA_SECRET_KEY на api). Пусто — капча на фронте не грузится.
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
       # Список доменов для Angular SSR (через запятую). Локально в Docker:
       NG_ALLOWED_HOSTS: ${NG_ALLOWED_HOSTS:-localhost,127.0.0.1}
     depends_on:

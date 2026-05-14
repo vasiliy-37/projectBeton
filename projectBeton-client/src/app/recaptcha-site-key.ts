@@ -1,6 +1,9 @@
 /**
- * Публичный ключ reCAPTCHA v3. Пока пусто — капча не грузится и бэкенд её не требует.
- * Заполните после выкладки на домен: в https://www.google.com/recaptcha/admin добавьте домен
- * (без http), создайте ключ v3, вставьте site key сюда и RECAPTCHA_SECRET_KEY в .env сервера.
+ * Публичный ключ reCAPTCHA v3 (его видно в браузере — так задумано у Google).
+ *
+ * Если здесь пусто, фронт подгружает ключ с `/config/recaptcha.json` (в Docker — из **RECAPTCHA_SITE_KEY** на `web`).
+ *
+ * Секретную пару (**RECAPTCHA_SECRET_KEY**) держите только в **projectBeton-server** `.env`.
+ * Админка ключей: https://www.google.com/recaptcha/admin
  */
-export const RECAPTCHA_V3_SITE_KEY = '';
+export const RECAPTCHA_V3_SITE_KEY = '6LeDKOosAAAAAFCX_2tcsX70R5TdM2rZLt6OV9D0';

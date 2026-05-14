@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 interface ContactData {
   name: string;
@@ -50,16 +51,7 @@ export class OrderService {
    */
   async sendOrder(orderData: OrderData): Promise<ApiResponse> {
     const url = `${this.baseApiUrl}/send-order`;
-    
-    // 🛑 Используем .toPromise() для конвертации Observable в Promise
-    try {
-        const response = await this.http.post<ApiResponse>(url, orderData).toPromise();
-        // В случае успеха возвращаем ответ бэкенда
-        return response as ApiResponse;
-    } catch (error) {
-        // В случае HTTP-ошибки пробрасываем ее
-        throw error;
-    }
+    return firstValueFrom(this.http.post<ApiResponse>(url, orderData));
   }
 
   /**
@@ -69,15 +61,6 @@ export class OrderService {
    */
   async requestCall(contactData: ContactData): Promise<ApiResponse> {
     const url = `${this.baseApiUrl}/request-call`;
-    
-    // 🛑 Используем .toPromise() для конвертации Observable в Promise
-    try {
-        const response = await this.http.post<ApiResponse>(url, contactData).toPromise();
-        // В случае успеха возвращаем ответ бэкенда
-        return response as ApiResponse;
-    } catch (error) {
-        // В случае HTTP-ошибки пробрасываем ее
-        throw error;
-    }
+    return firstValueFrom(this.http.post<ApiResponse>(url, contactData));
   }
 }
