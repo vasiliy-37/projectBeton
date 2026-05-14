@@ -957,4 +957,3 @@ app.delete('/api/works/:id', authenticateToken, async (req, res) => {
 app.listen(PORT, () => {
     console.log(`API: http://localhost:${PORT} (/api/* и /uploads/*). Сайт: ${process.env.FRONTEND_URL || 'http://localhost:4000'}`);
 });
-});
