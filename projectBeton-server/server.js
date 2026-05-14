@@ -281,6 +281,16 @@ app.use(
     })
 );
 
+/** Совместимость с прокси SSR: иногда до API доходит GET /works/<file> вместо /uploads/works/<file> — отдаём тот же каталог. */
+app.use(
+    '/works',
+    express.static(WORKS_UPLOAD_DIR, {
+        maxAge: isProduction ? 31536000000 : 0,
+        index: false,
+        etag: true,
+    })
+);
+
 /** Лимит на публичные формы (антиспам). За Nginx нужен trust proxy — см. выше. */
 const publicFormLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -297,7 +307,7 @@ app.use((req, res, next) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
         return next();
     }
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/works')) {
         return next();
     }
     const frontendBase = (process.env.FRONTEND_URL || 'http://localhost:4000').replace(/\/$/, '');
