@@ -2,6 +2,11 @@ const https = require('https');
 
 /**
  * Проверка Google reCAPTCHA v3. Если RECAPTCHA_SECRET_KEY не задан в .env — проверка пропускается (удобно для dev).
+ *
+ * Если скрипт reCAPTCHA в браузере не грузится (блокировки), токен пустой. Тогда:
+ * — либо уберите RECAPTCHA_SECRET_KEY,
+ * — либо задайте RECAPTCHA_ALLOW_NO_CLIENT_TOKEN=true (осознанный риск спама; оставьте жёсткий rate limit).
+ *
  * @param {string|undefined} token — поле recaptchaToken из тела запроса
  * @param {number} [minScore=0.3] — порог score (0..1)
  * @returns {Promise<{ ok: boolean, skipped?: boolean, reason?: string }>}
@@ -11,11 +16,19 @@ async function verifyRecaptchaV3(token, minScore = 0.3) {
     if (!secret) {
         return { ok: true, skipped: true };
     }
-    if (!token || typeof token !== 'string') {
+    const permissiveNoToken =
+        process.env.RECAPTCHA_ALLOW_NO_CLIENT_TOKEN === 'true' ||
+        process.env.RECAPTCHA_ALLOW_NO_CLIENT_TOKEN === '1';
+    const tokenStr = typeof token === 'string' ? token.trim() : '';
+    if (!tokenStr) {
+        if (permissiveNoToken) {
+            console.warn('[recaptcha] missing token accepted (RECAPTCHA_ALLOW_NO_CLIENT_TOKEN)');
+            return { ok: true, skipped: true, reason: 'permissive_no_token' };
+        }
         return { ok: false, reason: 'missing_token' };
     }
 
-    const body = new URLSearchParams({ secret, response: token }).toString();
+    const body = new URLSearchParams({ secret, response: tokenStr }).toString();
     /** Без таймаута запрос к Google может «висеть» бесконечно (фаервол, сеть) — браузер показывает pending. */
     const CONNECT_MS = 10000;
     const RESPONSE_BODY_MS = 10000;

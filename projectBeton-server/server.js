@@ -700,6 +700,16 @@ app.post('/api/send-order', publicFormLimiter, async (req, res) => {
                     'Сервис проверки защиты не ответил вовремя. Попробуйте через минуту или позвоните нам.',
             });
         }
+        if (captcha.reason === 'missing_token') {
+            console.warn(
+                '[send-order] Пустой токен reCAPTCHA. Проверьте nginx CSP (script-src: www.recaptcha.net www.gstatic.com), блокировщики. Обход: RECAPTCHA_ALLOW_NO_CLIENT_TOKEN=true или убрать RECAPTCHA_SECRET_KEY.',
+            );
+            return res.status(400).send({
+                success: false,
+                message:
+                    'Браузер не передал проверку reCAPTCHA (часто блокировщик рекламы, расширение или настройки сети). Отключите блокировку для этого сайта, попробуйте другой браузер или мобильный интернет.',
+            });
+        }
         return res.status(400).send({
             success: false,
             message: 'Проверка reCAPTCHA не пройдена. Обновите страницу и попробуйте снова.',
@@ -773,13 +783,21 @@ app.post('/api/request-call', publicFormLimiter, async (req, res) => {
                     'Сервис проверки защиты не ответил вовремя. Попробуйте через минуту или позвоните нам.',
             });
         }
+        if (captcha.reason === 'missing_token') {
+            console.warn(
+                '[request-call] Пустой токен reCAPTCHA. CSP/блокировщики. Обход: RECAPTCHA_ALLOW_NO_CLIENT_TOKEN=true или убрать RECAPTCHA_SECRET_KEY.',
+            );
+            return res.status(400).send({
+                success: false,
+                message:
+                    'Браузер не передал проверку reCAPTCHA (часто блокировщик рекламы, расширение или настройки сети). Отключите блокировку для этого сайта, попробуйте другой браузер или мобильный интернет.',
+            });
+        }
         return res.status(400).send({
             success: false,
             message: 'Проверка reCAPTCHA не пройдена. Обновите страницу и попробуйте снова.',
         });
     }
-
-    // Получаем только имя и телефон, отправленные с Angular
     const { name, phone } = req.body;
 
     // Базовая валидация

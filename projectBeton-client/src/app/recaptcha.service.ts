@@ -19,19 +19,18 @@ export class RecaptchaService {
   private runtimeSiteKey: string | undefined = undefined;
   private runtimeSiteKeyPromise: Promise<string> | null = null;
 
-  /** Токен для отправки на бэкенд; если ключ не задан или не браузер — пустая строка. */
+  /** Токен для бэкенда; при недоступности скриптов Google — пустая строка (без исключения). */
   async execute(action: string): Promise<string> {
     const siteKey = await this.resolveSiteKey();
     if (!isPlatformBrowser(this.platformId) || !siteKey) {
       return '';
     }
     const timeoutMs = 15000;
-    return Promise.race([
+    const token = await Promise.race([
       this.runExecute(action, siteKey),
-      new Promise<string>((_, reject) =>
-        setTimeout(() => reject(new Error('recaptcha_execute_timeout')), timeoutMs),
-      ),
+      new Promise<string>((resolve) => setTimeout(() => resolve(''), timeoutMs)),
     ]);
+    return typeof token === 'string' ? token : '';
   }
 
   /** Сначала константа из репозитория, иначе публичный ключ из SSR: `/config/recaptcha.json`. */
@@ -57,7 +56,12 @@ export class RecaptchaService {
   }
 
   private async runExecute(action: string, siteKey: string): Promise<string> {
-    await this.loadScript(siteKey);
+    try {
+      await this.loadScript(siteKey);
+    } catch {
+      console.warn('[RecaptchaService] скрипт reCAPTCHA не загрузился (сеть / блокировщик / CSP)');
+      return '';
+    }
     return new Promise((resolve) => {
       const g = window.grecaptcha;
       if (!g) {
@@ -108,6 +112,7 @@ export class RecaptchaService {
       attempt(0);
     });
     this.scriptPromises.set(siteKey, p);
+    void p.catch(() => this.scriptPromises.delete(siteKey));
     return p;
   }
 }
