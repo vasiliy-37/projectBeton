@@ -4,7 +4,8 @@
  * Если здесь пусто, фронт подгружает ключ с `/config/recaptcha.json` (в Docker — из **RECAPTCHA_SITE_KEY** на `web`).
  *
  * Секретную пару (**RECAPTCHA_SECRET_KEY**) держите только в **projectBeton-server** `.env`.
- * Админка ключей: https://www.google.com/recaptcha/admin
+ * В консоли reCAPTCHA в «Домены» добавьте **и кириллический** (бетонстрой37.рф), **и punycode**
+ * (как в адресной строке браузера, напр. xn--…xn--p1ai) — иначе токен может быть недействителен.
  * Если скрипт не грузится — проверьте CSP в nginx: **deploy/nginx-recaptcha-csp-snippet.txt**
  */
 export const RECAPTCHA_V3_SITE_KEY = '6LeDKOosAAAAAFCX_2tcsX70R5TdM2rZLt6OV9D0';
