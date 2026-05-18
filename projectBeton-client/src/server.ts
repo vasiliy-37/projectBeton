@@ -24,7 +24,7 @@ function isIpv4External(addr: { family: string | number; internal?: boolean }): 
  * Локально: если переменная не задана — localhost + IPv4 LAN (иначе с телефона по Wi‑Fi SSR отклоняет Host).
  *
  * ПРОДАКШЕН: обязательно задайте NG_ALLOWED_HOSTS с вашим доменом (и при необходимости www),
- * например: NG_ALLOWED_HOSTS=projectbeton.ru,www.projectbeton.ru
+ * например: NG_ALLOWED_HOSTS=xn--37-9kcquxgbrjid.xn--p1ai,бетонстрой37.рф
  * Учитывайте Host / X-Forwarded-Host от nginx.
  */
 function ensureNgAllowedHostsForSsr(): void {

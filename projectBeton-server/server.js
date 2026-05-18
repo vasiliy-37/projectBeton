@@ -316,13 +316,39 @@ app.use((req, res, next) => {
     return res.redirect(302, `${frontendBase}${suffix}`);
 });
 
+/** Убирает пробелы и кавычки из значений .env (частая причина 550 у SMTP). */
+function normalizeMailEnvValue(value) {
+    return String(value ?? '')
+        .trim()
+        .replace(/^['"]+|['"]+$/g, '');
+}
+
+function isLikelyEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function maskEmailForLog(email) {
+    const at = email.indexOf('@');
+    if (at < 1) {
+        return `(некорректный адрес, длина ${email.length})`;
+    }
+    const local = email.slice(0, at);
+    const domain = email.slice(at + 1);
+    const localMasked = local.length <= 2 ? '*' : `${local[0]}***${local[local.length - 1]}`;
+    return `${localMasked}@${domain}`;
+}
+
 const smtpPort = Number(process.env.SMTP_PORT || '465') || 465;
-const smtpHost = process.env.SMTP_HOST?.trim() || 'smtp.gmail.com';
+const smtpHost = normalizeMailEnvValue(process.env.SMTP_HOST) || 'smtp.gmail.com';
 /** 465 — SSL; 587 — STARTTLS (часто разрешён, если 465 режут на VPS). */
 const smtpSecure =
     process.env.SMTP_SECURE === 'false' || process.env.SMTP_SECURE === '0'
         ? false
         : smtpPort === 465;
+
+const mailFromUser = normalizeMailEnvValue(process.env.EMAIL_USER);
+const mailPass = normalizeMailEnvValue(process.env.EMAIL_PASS);
+const mailTo = normalizeMailEnvValue(process.env.RECIPIENT_EMAIL);
 
 const transporter = nodemailer.createTransport({
     host: smtpHost,
@@ -333,15 +359,23 @@ const transporter = nodemailer.createTransport({
     greetingTimeout: 20000,
     socketTimeout: 45000,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: mailFromUser,
+        pass: mailPass,
     },
 });
 
 console.log(`[mail] SMTP ${smtpHost}:${smtpPort} secure=${smtpSecure} (задайте SMTP_HOST/SMTP_PORT/SMTP_SECURE в .env при блокировке порта)`);
 console.log(
-    `[mail] env: EMAIL_USER=${process.env.EMAIL_USER?.trim() ? 'ok' : 'MISSING'}, RECIPIENT_EMAIL=${process.env.RECIPIENT_EMAIL?.trim() ? 'ok' : 'MISSING'}, EMAIL_PASS=${String(process.env.EMAIL_PASS ?? '').trim() ? 'ok' : 'MISSING'} (в Docker переменные из env_file compose, не из файла .env внутри образа)`,
+    `[mail] env: EMAIL_USER=${mailFromUser ? 'ok' : 'MISSING'}, RECIPIENT_EMAIL=${mailTo ? 'ok' : 'MISSING'}, EMAIL_PASS=${mailPass ? 'ok' : 'MISSING'} (в Docker переменные из env_file compose, не из файла .env внутри образа)`,
 );
+console.log(
+    `[mail] получатель (маска): ${maskEmailForLog(mailTo)}, валидный формат=${isLikelyEmail(mailTo)}`,
+);
+if (mailTo && !isLikelyEmail(mailTo)) {
+    console.error(
+        '[mail] RECIPIENT_EMAIL не похож на email (проверьте projectBeton-server/.env: без кавычек, пробелов, лишних символов после адреса)',
+    );
+}
 
 transporter.verify(function (error, success) {
     if (error) {
@@ -356,11 +390,30 @@ transporter.verify(function (error, success) {
 });
 
 function isMailConfigured() {
-    return Boolean(
-        process.env.EMAIL_USER?.trim() &&
-            String(process.env.EMAIL_PASS ?? '').trim() &&
-            process.env.RECIPIENT_EMAIL?.trim(),
-    );
+    return Boolean(mailFromUser && mailPass && mailTo && isLikelyEmail(mailTo));
+}
+
+function mailConfigErrorResponse() {
+    if (!mailFromUser || !mailPass || !mailTo) {
+        return {
+            status: 500,
+            body: {
+                success: false,
+                message: 'Почта на сервере не настроена (EMAIL_USER / EMAIL_PASS / RECIPIENT_EMAIL).',
+            },
+        };
+    }
+    if (!isLikelyEmail(mailTo)) {
+        console.error('[mail] RECIPIENT_EMAIL невалиден:', maskEmailForLog(mailTo));
+        return {
+            status: 500,
+            body: {
+                success: false,
+                message: 'Некорректный адрес получателя заявок на сервере (RECIPIENT_EMAIL).',
+            },
+        };
+    }
+    return null;
 }
 
 /** Подробности только в лог сервера (docker compose logs api). */
@@ -776,9 +829,14 @@ app.post('/api/send-order', publicFormLimiter, async (req, res) => {
         return res.status(400).send({ message: 'Не все обязательные поля заполнены.' });
     }
 
+    const mailCfgErr = mailConfigErrorResponse();
+    if (mailCfgErr) {
+        return res.status(mailCfgErr.status).send(mailCfgErr.body);
+    }
+
     const mailOptions = {
-        from: `"Бетон-Заказ" <${process.env.EMAIL_USER}>`,
-        to: process.env.RECIPIENT_EMAIL, // Ваш адрес, куда должны приходить заказы (из .env)
+        from: `"Бетон-Заказ" <${mailFromUser}>`,
+        to: mailTo,
         subject: `НОВЫЙ ЗАКАЗ: ${brand} - ${quantity} м³`,
         html: `
             <h2>Детали заказа бетона</h2>

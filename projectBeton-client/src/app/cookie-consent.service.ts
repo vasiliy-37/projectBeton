@@ -9,7 +9,8 @@ import {
 
 export type CookieConsentLevel = 'necessary' | 'analytics';
 
-const STORAGE_KEY = 'projectbeton_cookie_consent_v1';
+const STORAGE_KEY = 'betonstroy_cookie_consent_v1';
+const LEGACY_STORAGE_KEY = 'projectbeton_cookie_consent_v1';
 const GTM_ID = 'GTM-PJG77HNV';
 const YM_ID = 109147448;
 
@@ -63,7 +64,14 @@ export class CookieConsentService {
   }
 
   private restoreFromStorage(): void {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (raw !== 'necessary' && raw !== 'analytics') {
+      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw === 'necessary' || raw === 'analytics') {
+        localStorage.setItem(STORAGE_KEY, raw);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
     if (raw === 'necessary' || raw === 'analytics') {
       this.level.set(raw);
     }
@@ -77,11 +85,11 @@ export class CookieConsentService {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    const w = window as Window & { __projectbetonGtmLoaded?: boolean };
-    if (w.__projectbetonGtmLoaded) {
+    const w = window as Window & { __betonstroyGtmLoaded?: boolean };
+    if (w.__betonstroyGtmLoaded) {
       return;
     }
-    w.__projectbetonGtmLoaded = true;
+    w.__betonstroyGtmLoaded = true;
     w.dataLayer = w.dataLayer || [];
     w.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
     const j = document.createElement('script');
@@ -105,11 +113,11 @@ export class CookieConsentService {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    const w = window as Window & { __projectbetonYmLoaded?: boolean };
-    if (w.__projectbetonYmLoaded) {
+    const w = window as Window & { __betonstroyYmLoaded?: boolean };
+    if (w.__betonstroyYmLoaded) {
       return;
     }
-    w.__projectbetonYmLoaded = true;
+    w.__betonstroyYmLoaded = true;
 
     const script = document.createElement('script');
     script.async = true;

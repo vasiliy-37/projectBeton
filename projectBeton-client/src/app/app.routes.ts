@@ -6,23 +6,23 @@ export const routes: Routes = [
   {
     path: '',
     component: Home,
-    title: 'Купить бетон в Иваново и области — доставка с завода | ProjectBeton'
+    title: 'Купить бетон в Иваново и области — доставка с завода | Бетон-Строй'
   },
 
   {
     path: 'price',
     loadComponent: () => import('./components/price/price').then((m) => m.Price),
-    title: 'Цены на бетон в Иваново - стоимость за 1 м3 | ProjectBeton'
+    title: 'Цены на бетон в Иваново - стоимость за 1 м3 | Бетон-Строй'
   },
   {
     path: 'services',
     loadComponent: () => import('./components/services/services').then((m) => m.Services),
-    title: 'Доставка бетона и услуги бетононасоса в Иваново | ProjectBeton'
+    title: 'Доставка бетона и услуги бетононасоса в Иваново | Бетон-Строй'
   },
   {
     path: 'useful',
     loadComponent: () => import('./components/useful/useful').then((m) => m.Useful),
-    title: 'Полезное: марки бетона, уход после заливки, приёмка | ProjectBeton'
+    title: 'Полезное: марки бетона, уход после заливки, приёмка | Бетон-Строй'
   },
   {
     path: 'beton-v/:city',
@@ -32,7 +32,7 @@ export const routes: Routes = [
   {
     path: 'contacts',
     loadComponent: () => import('./components/contacts/contacts').then((m) => m.Contacts),
-    title: 'Контакты ProjectBeton в Иваново | Телефон, адрес, email'
+    title: 'Контакты Бетон-Строй в Иваново | Телефон, адрес, email'
   },
   {
     path: 'privacy',

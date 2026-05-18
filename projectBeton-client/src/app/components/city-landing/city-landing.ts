@@ -28,13 +28,13 @@ export class CityLanding implements OnInit {
       this.currentCity.set(cityData);
 
       if (cityData) {
-        this.title.setTitle(`Бетон с доставкой в ${cityData.cityPrepositional} | ProjectBeton`);
+        this.title.setTitle(`Бетон с доставкой в ${cityData.cityPrepositional} | Бетон-Строй`);
         this.meta.updateTag({
           name: 'description',
           content: `Производство и доставка бетона в ${cityData.cityPrepositional} и по ${cityData.district}. Актуальные цены, собственный автопарк и оперативная отгрузка с завода.`
         });
       } else {
-        this.title.setTitle('Город не найден | ProjectBeton');
+        this.title.setTitle('Город не найден | Бетон-Строй');
         this.meta.updateTag({
           name: 'description',
           content: 'Запрошенный город не найден. Выберите нужный город из списка зон доставки бетона.'
