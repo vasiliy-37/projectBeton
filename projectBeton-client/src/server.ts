@@ -18,34 +18,54 @@ function isIpv4External(addr: { family: string | number; internal?: boolean }): 
   return !addr.internal;
 }
 
+/** Продакшен-домены сайта (всегда добавляются к NG_ALLOWED_HOSTS в production). */
+const PRODUCTION_SITE_HOSTS = ['betonstroy37.ru', 'www.betonstroy37.ru'];
+
 /**
  * Доверенные Host для SSR (защита от SSRF). Angular читает `process.env.NG_ALLOWED_HOSTS` (через запятую).
  *
  * Локально: если переменная не задана — localhost + IPv4 LAN (иначе с телефона по Wi‑Fi SSR отклоняет Host).
  *
- * ПРОДАКШЕН: обязательно задайте NG_ALLOWED_HOSTS с вашим доменом (и при необходимости www),
- * например: NG_ALLOWED_HOSTS=betonstroy37.ru,www.betonstroy37.ru
- * Учитывайте Host / X-Forwarded-Host от nginx.
+ * ПРОДАКШЕН: в .env можно дополнить IP и прочее, например:
+ * NG_ALLOWED_HOSTS=localhost,127.0.0.1,5.42.120.154
+ * betonstroy37.ru и www всегда добавляются из кода.
  */
+function parseAllowedHostsList(raw: string | undefined): string[] {
+  if (!raw?.trim()) {
+    return [];
+  }
+  return raw
+    .split(',')
+    .map((h) => h.trim().replace(/^["']|["']$/g, ''))
+    .filter(Boolean);
+}
+
 function ensureNgAllowedHostsForSsr(): void {
-  if (process.env['NG_ALLOWED_HOSTS']?.trim()) {
-    return;
-  }
+  const hosts = new Set<string>(parseAllowedHostsList(process.env['NG_ALLOWED_HOSTS']));
+
   if (process.env['NODE_ENV'] === 'production') {
-    console.warn(
-      '[SSR] Задайте NG_ALLOWED_HOSTS (домены через запятую), иначе возможен пустой HTML в <app-root> или отказ SSR.'
-    );
-    return;
-  }
-  const hosts = new Set<string>(['localhost', '127.0.0.1']);
-  for (const list of Object.values(networkInterfaces())) {
-    for (const addr of list ?? []) {
-      if (isIpv4External(addr)) {
-        hosts.add(addr.address);
+    for (const h of PRODUCTION_SITE_HOSTS) {
+      hosts.add(h);
+    }
+    hosts.add('localhost');
+    hosts.add('127.0.0.1');
+  } else if (hosts.size === 0) {
+    hosts.add('localhost');
+    hosts.add('127.0.0.1');
+    for (const list of Object.values(networkInterfaces())) {
+      for (const addr of list ?? []) {
+        if (isIpv4External(addr)) {
+          hosts.add(addr.address);
+        }
       }
     }
   }
+
   process.env['NG_ALLOWED_HOSTS'] = [...hosts].join(',');
+
+  if (process.env['NODE_ENV'] === 'production') {
+    console.log(`[SSR] NG_ALLOWED_HOSTS=${process.env['NG_ALLOWED_HOSTS']}`);
+  }
 }
 
 ensureNgAllowedHostsForSsr();

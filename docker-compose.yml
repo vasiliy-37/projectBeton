@@ -47,6 +47,8 @@ services:
       context: ./projectBeton-client
       dockerfile: Dockerfile
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       TRUST_PROXY: '1'
