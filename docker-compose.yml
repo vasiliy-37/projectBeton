@@ -55,7 +55,7 @@ services:
       # Клиентский ключ SmartCaptcha (пара к SMARTCAPTCHA_SERVER_KEY на api). Пусто — капча на фронте не грузится.
       SMARTCAPTCHA_CLIENT_KEY: ${SMARTCAPTCHA_CLIENT_KEY:-}
       # Список доменов для Angular SSR (через запятую). Локально в Docker:
-      NG_ALLOWED_HOSTS: ${NG_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      NG_ALLOWED_HOSTS: ${NG_ALLOWED_HOSTS:-betonstroy37.ru,www.betonstroy37.ru,localhost,127.0.0.1}
     depends_on:
       - api
     ports:

@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /login
 
-Sitemap: https://xn--37-9kcquxgbrjid.xn--p1ai/sitemap.xml
+Sitemap: https://betonstroy37.ru/sitemap.xml
